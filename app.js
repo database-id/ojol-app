@@ -365,12 +365,12 @@ function updateDashboard() {
 
 // Update mini chart and quick stats
 function updateIncomeChart(summary, target) {
-    const netIncome = summary.netIncome;
+    const totalIncome = summary.totalIncome;
 
-    // Calculate bar widths - compare target vs achieved
-    const maxValue = Math.max(target, netIncome, 1);
+    // Calculate bar widths - compare target vs achieved (using total income)
+    const maxValue = Math.max(target, totalIncome, 1);
     const targetPct = (target / maxValue) * 100;
-    const achievedPct = (netIncome / maxValue) * 100;
+    const achievedPct = (totalIncome / maxValue) * 100;
 
     // Update target bar
     const targetBar = document.getElementById('chartBarTarget');
@@ -385,7 +385,7 @@ function updateIncomeChart(summary, target) {
     if (targetValue) targetValue.textContent = formatRupiahShort(target);
 
     const achievedValue = document.getElementById('chartAchievedValue');
-    if (achievedValue) achievedValue.textContent = formatRupiahShort(netIncome);
+    if (achievedValue) achievedValue.textContent = formatRupiahShort(totalIncome);
 
     // Update ringkasan
     updateRingkasan(summary);

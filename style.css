@@ -380,21 +380,39 @@ body {
 }
 
 /* Mini Chart */
-.mini-chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.mini-chart-header h4 {
+.mini-chart-card h4 {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-dark);
+    margin-bottom: 12px;
 }
 
-.mini-pct {
-    font-size: 18px;
+.mini-chart-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--text-dark);
+}
+
+.chart-info-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.chart-info-item {
+    font-size: 12px;
+    color: var(--text-gray);
+}
+
+.chart-info-item strong {
+    color: var(--text-dark);
+}
+
+.chart-pct {
+    font-size: 20px;
     font-weight: 700;
     color: var(--primary);
 }
@@ -432,11 +450,11 @@ body {
 }
 
 .mini-bar-fill.target-bar {
-    background: var(--border);
+    background: #94A3B8;
 }
 
 .mini-bar-fill.achieved-bar {
-    background: var(--primary);
+    background: var(--gojek);
 }
 
 .mini-bar-fill.gojek { background: var(--gojek); }
@@ -457,13 +475,9 @@ body {
     border-top: 1px solid var(--border);
 }
 
+/* Removed old mini-target - using mini-chart-footer now */
 .mini-target {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    font-size: 11px;
+    display: none;
     color: var(--text-gray);
 }
 
