@@ -577,8 +577,10 @@ function calculateSummary(incomes, expenses) {
 function toggleMobileMenu() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('mobileOverlay');
-    sidebar.classList.toggle('show');
-    overlay.classList.toggle('show');
+    if (sidebar && overlay) {
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('show');
+    }
 }
 
 // ==================== UI NAVIGATION ====================
@@ -598,7 +600,12 @@ function switchPage(pageName) {
 
     // Close mobile menu after navigation
     if (window.innerWidth <= 768) {
-        toggleMobileMenu();
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('mobileOverlay');
+        if (sidebar && overlay && sidebar.classList.contains('show')) {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+        }
     }
 
     if (pageName === 'dashboard') updateDashboard();
