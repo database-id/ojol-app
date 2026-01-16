@@ -160,11 +160,12 @@ body {
     margin-bottom: 24px;
 }
 
-.header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
+.dashboard-header h2 {
+    margin-bottom: 12px;
+}
+
+.dashboard-header .period-tabs {
+    margin-bottom: 12px;
 }
 
 .header-top h2 {
