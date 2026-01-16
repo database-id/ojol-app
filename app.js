@@ -583,6 +583,44 @@ function toggleMobileMenu() {
     }
 }
 
+// Auto-hide mobile menu button on scroll
+let lastScrollTop = 0;
+let scrollTimeout;
+
+function handleMobileMenuScroll() {
+    const menuBtn = document.getElementById('mobileMenuBtn');
+    const sidebar = document.getElementById('sidebar');
+
+    if (!menuBtn || window.innerWidth > 768) return;
+
+    // Don't hide if sidebar is open
+    if (sidebar && sidebar.classList.contains('show')) return;
+
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+    clearTimeout(scrollTimeout);
+
+    if (scrollTop > lastScrollTop && scrollTop > 50) {
+        // Scrolling down & past 50px - hide button
+        menuBtn.classList.add('hide');
+    } else {
+        // Scrolling up - show button
+        menuBtn.classList.remove('hide');
+    }
+
+    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+
+    // Show button again after 2 seconds of no scrolling
+    scrollTimeout = setTimeout(() => {
+        menuBtn.classList.remove('hide');
+    }, 2000);
+}
+
+// Add scroll listener for mobile menu
+if (typeof window !== 'undefined') {
+    window.addEventListener('scroll', handleMobileMenuScroll);
+}
+
 // ==================== UI NAVIGATION ====================
 function switchPage(pageName) {
     document.querySelectorAll('.content-section').forEach(section => {
