@@ -24,7 +24,10 @@ async function apiCall(action, params = {}) {
     const url = new URL(API_URL);
     url.searchParams.append('action', action);
     Object.keys(params).forEach(key => {
-        url.searchParams.append(key, params[key]);
+        // Only append if value is not undefined or null
+        if (params[key] !== undefined && params[key] !== null) {
+            url.searchParams.append(key, params[key]);
+        }
     });
 
     try {
@@ -33,7 +36,7 @@ async function apiCall(action, params = {}) {
         return data;
     } catch (error) {
         console.error('API Error:', error);
-        showToast('Connection error. Please try again.', 'error');
+        showToast('Failed to save: ' + error.message, 'error');
         return { success: false, error: error.message };
     }
 }
@@ -315,22 +318,31 @@ async function addIncome(income) {
     const user = getCurrentUser();
     if (!user) return;
 
-    income.id = Date.now();
-    income.createdAt = new Date().toISOString();
+    // Ensure all fields are defined
+    const cleanIncome = {
+        id: Date.now(),
+        platform: income.platform || 'gojek',
+        date: income.date || getToday(),
+        amount: parseInt(income.amount) || 0,
+        orders: parseInt(income.orders) || 0,
+        bonus: parseInt(income.bonus) || 0,
+        note: income.note || '',
+        createdAt: new Date().toISOString()
+    };
 
     showLoading('Saving...');
 
     const result = await apiCall('addIncome', {
         username: user.username,
-        income: JSON.stringify(income)
+        income: JSON.stringify(cleanIncome)
     });
 
     hideLoading();
 
     if (result.success) {
-        incomeData.push(income);
+        incomeData.push(cleanIncome);
         localStorage.setItem(STORAGE_KEYS.CACHED_INCOME, JSON.stringify(incomeData));
-        return income;
+        return cleanIncome;
     } else {
         showToast('Failed to save income', 'error');
         return null;
@@ -398,22 +410,29 @@ async function addExpense(expense) {
     const user = getCurrentUser();
     if (!user) return;
 
-    expense.id = Date.now();
-    expense.createdAt = new Date().toISOString();
+    // Ensure all fields are defined
+    const cleanExpense = {
+        id: Date.now(),
+        category: expense.category || 'lainnya',
+        date: expense.date || getToday(),
+        amount: parseInt(expense.amount) || 0,
+        note: expense.note || '',
+        createdAt: new Date().toISOString()
+    };
 
     showLoading('Saving...');
 
     const result = await apiCall('addExpense', {
         username: user.username,
-        expense: JSON.stringify(expense)
+        expense: JSON.stringify(cleanExpense)
     });
 
     hideLoading();
 
     if (result.success) {
-        expenseData.push(expense);
+        expenseData.push(cleanExpense);
         localStorage.setItem(STORAGE_KEYS.CACHED_EXPENSE, JSON.stringify(expenseData));
-        return expense;
+        return cleanExpense;
     } else {
         showToast('Failed to save expense', 'error');
         return null;
