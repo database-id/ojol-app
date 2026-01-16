@@ -362,11 +362,11 @@ function updateDashboard() {
     document.getElementById('summaryExpense').textContent = formatRupiah(summary.totalExpense);
 
     // Update target progress
-    const targetPercent = target > 0 ? Math.min(100, (summary.netIncome / target) * 100) : 0;
+    const targetPercent = target > 0 ? (summary.netIncome / target) * 100 : 0;
     document.getElementById('chartTitle').textContent = targetLabel;
     document.getElementById('targetCurrent').textContent = formatRupiah(summary.netIncome);
     document.getElementById('targetGoal').textContent = formatRupiah(target);
-    document.getElementById('targetProgress').style.width = `${targetPercent}%`;
+    document.getElementById('targetProgress').style.width = `${Math.min(100, targetPercent)}%`;
     document.getElementById('targetPercent').textContent = `${Math.round(targetPercent)}%`;
 
     // Update chart
