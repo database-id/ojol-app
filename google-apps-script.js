@@ -151,22 +151,35 @@ function getIncome(username) {
 }
 
 function addIncome(username, incomeJson) {
-  const income = JSON.parse(incomeJson);
-  const sheet = getSheet('Income');
+  try {
+    if (!incomeJson || incomeJson === 'undefined') {
+      return { success: false, error: 'Invalid income data' };
+    }
 
-  sheet.appendRow([
-    username,
-    income.id || Date.now(),
-    income.platform,
-    income.date,
-    income.amount,
-    income.orders,
-    income.bonus || 0,
-    income.note || '',
-    income.createdAt || new Date().toISOString()
-  ]);
+    const income = JSON.parse(incomeJson);
 
-  return { success: true, message: 'Income added!' };
+    if (!income.platform || !income.date || !income.amount || !income.orders) {
+      return { success: false, error: 'Missing required fields' };
+    }
+
+    const sheet = getSheet('Income');
+
+    sheet.appendRow([
+      username,
+      income.id || Date.now(),
+      income.platform,
+      income.date,
+      income.amount,
+      income.orders,
+      income.bonus || 0,
+      income.note || '',
+      income.createdAt || new Date().toISOString()
+    ]);
+
+    return { success: true, message: 'Income added!' };
+  } catch (error) {
+    return { success: false, error: 'Error adding income: ' + error.toString() };
+  }
 }
 
 function deleteIncome(username, incomeId) {
@@ -206,20 +219,33 @@ function getExpense(username) {
 }
 
 function addExpense(username, expenseJson) {
-  const expense = JSON.parse(expenseJson);
-  const sheet = getSheet('Expense');
+  try {
+    if (!expenseJson || expenseJson === 'undefined') {
+      return { success: false, error: 'Invalid expense data' };
+    }
 
-  sheet.appendRow([
-    username,
-    expense.id || Date.now(),
-    expense.category,
-    expense.date,
-    expense.amount,
-    expense.note || '',
-    expense.createdAt || new Date().toISOString()
-  ]);
+    const expense = JSON.parse(expenseJson);
 
-  return { success: true, message: 'Expense added!' };
+    if (!expense.category || !expense.date || !expense.amount) {
+      return { success: false, error: 'Missing required fields' };
+    }
+
+    const sheet = getSheet('Expense');
+
+    sheet.appendRow([
+      username,
+      expense.id || Date.now(),
+      expense.category,
+      expense.date,
+      expense.amount,
+      expense.note || '',
+      expense.createdAt || new Date().toISOString()
+    ]);
+
+    return { success: true, message: 'Expense added!' };
+  } catch (error) {
+    return { success: false, error: 'Error adding expense: ' + error.toString() };
+  }
 }
 
 function deleteExpense(username, expenseId) {
@@ -268,30 +294,44 @@ function getTarget(username) {
 }
 
 function saveTarget(username, targetJson) {
-  const target = JSON.parse(targetJson);
-  const sheet = getSheet('Target');
-  const data = sheet.getDataRange().getValues();
-
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === username) {
-      sheet.getRange(i + 1, 2, 1, 4).setValues([[
-        target.weekday,
-        target.weekend,
-        target.weekly,
-        target.monthly
-      ]]);
-      return { success: true, message: 'Target saved!' };
+  try {
+    if (!targetJson || targetJson === 'undefined') {
+      return { success: false, error: 'Invalid target data' };
     }
+
+    const target = JSON.parse(targetJson);
+
+    if (target.weekday === undefined || target.weekend === undefined ||
+        target.weekly === undefined || target.monthly === undefined) {
+      return { success: false, error: 'Missing required fields' };
+    }
+
+    const sheet = getSheet('Target');
+    const data = sheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === username) {
+        sheet.getRange(i + 1, 2, 1, 4).setValues([[
+          target.weekday,
+          target.weekend,
+          target.weekly,
+          target.monthly
+        ]]);
+        return { success: true, message: 'Target saved!' };
+      }
+    }
+
+    // If not found, create new
+    sheet.appendRow([
+      username,
+      target.weekday,
+      target.weekend,
+      target.weekly,
+      target.monthly
+    ]);
+
+    return { success: true, message: 'Target created!' };
+  } catch (error) {
+    return { success: false, error: 'Error saving target: ' + error.toString() };
   }
-
-  // If not found, create new
-  sheet.appendRow([
-    username,
-    target.weekday,
-    target.weekend,
-    target.weekly,
-    target.monthly
-  ]);
-
-  return { success: true, message: 'Target created!' };
 }

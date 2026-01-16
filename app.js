@@ -32,10 +32,18 @@ async function apiCall(action, params = {}) {
 
     try {
         const response = await fetch(url.toString());
-        const data = await response.json();
+        const text = await response.text();
+
+        // Check if response is valid
+        if (!text || text === 'undefined' || text.trim() === '') {
+            throw new Error('Empty or invalid response from server');
+        }
+
+        const data = JSON.parse(text);
         return data;
     } catch (error) {
         console.error('API Error:', error);
+        console.error('Response text:', error.responseText);
         showToast('Failed to save: ' + error.message, 'error');
         return { success: false, error: error.message };
     }
