@@ -352,11 +352,6 @@ function updateDashboard() {
     document.getElementById('summaryGojek').textContent = formatRupiah(summary.gojek.total);
     document.getElementById('summaryGrab').textContent = formatRupiah(summary.grab.total);
 
-    // Update target progress
-    const targetPercent = target > 0 ? (summary.totalIncome / target) * 100 : 0;
-    document.getElementById('chartTitle').textContent = targetLabel;
-    document.getElementById('targetPercent').textContent = `${Math.round(targetPercent)}%`;
-
     // Update chart
     updateIncomeChart(summary, target);
 }
