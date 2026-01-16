@@ -365,26 +365,27 @@ function updateDashboard() {
 
 // Update mini chart and quick stats
 function updateIncomeChart(summary, target) {
-    const totalIncome = summary.totalIncome;
+    const netIncome = summary.netIncome;
 
-    // Calculate bar width - show how much of target is achieved
-    const maxValue = Math.max(target, totalIncome, 1);
-    const totalPct = (totalIncome / maxValue) * 100;
+    // Calculate bar widths - compare target vs achieved
+    const maxValue = Math.max(target, netIncome, 1);
     const targetPct = (target / maxValue) * 100;
+    const achievedPct = (netIncome / maxValue) * 100;
 
-    // Update bar width
-    const barEl = document.getElementById('chartBarTotal');
-    if (barEl) barEl.style.width = `${Math.min(100, totalPct)}%`;
+    // Update target bar
+    const targetBar = document.getElementById('chartBarTarget');
+    if (targetBar) targetBar.style.width = `${Math.min(100, targetPct)}%`;
 
-    // Update target line position
-    const targetLine = document.getElementById('targetLine');
-    if (targetLine) {
-        targetLine.style.left = `${Math.min(100, targetPct)}%`;
-    }
+    // Update achieved bar
+    const achievedBar = document.getElementById('chartBarAchieved');
+    if (achievedBar) achievedBar.style.width = `${Math.min(100, achievedPct)}%`;
 
-    // Update bar value
-    const valueEl = document.getElementById('chartTotalValue');
-    if (valueEl) valueEl.textContent = formatRupiahShort(totalIncome);
+    // Update bar values
+    const targetValue = document.getElementById('chartTargetValue');
+    if (targetValue) targetValue.textContent = formatRupiahShort(target);
+
+    const achievedValue = document.getElementById('chartAchievedValue');
+    if (achievedValue) achievedValue.textContent = formatRupiahShort(netIncome);
 
     // Update ringkasan
     updateRingkasan(summary);
