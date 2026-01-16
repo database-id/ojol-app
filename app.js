@@ -1222,22 +1222,42 @@ document.addEventListener('DOMContentLoaded', function() {
     // Income form
     document.getElementById('incomeForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        const platform = document.querySelector('input[name="platform"]:checked').value;
-        const income = {
-            platform,
-            date: document.getElementById('incomeDate').value,
-            amount: parseInt(document.getElementById('incomeAmount').value) || 0,
-            orders: parseInt(document.getElementById('incomeOrders').value) || 0,
-            bonus: parseInt(document.getElementById('incomeBonus').value) || 0,
-            note: document.getElementById('incomeNote').value
-        };
-        addIncome(income);
-        this.reset();
-        document.getElementById('incomeDate').value = getToday();
-        document.querySelector('input[name="platform"][value="gojek"]').checked = true;
-        loadIncomeList();
-        updateDashboard();
-        showToast('Pendapatan berhasil ditambahkan');
+        try {
+            const platform = document.querySelector('input[name="platform"]:checked').value;
+            const dateVal = document.getElementById('incomeDate').value;
+            const amountVal = document.getElementById('incomeAmount').value;
+            const ordersVal = document.getElementById('incomeOrders').value;
+
+            if (!dateVal || !amountVal || !ordersVal) {
+                showToast('Lengkapi semua field', 'error');
+                return;
+            }
+
+            const income = {
+                platform,
+                date: dateVal,
+                amount: parseInt(amountVal) || 0,
+                orders: parseInt(ordersVal) || 0,
+                bonus: parseInt(document.getElementById('incomeBonus').value) || 0,
+                note: document.getElementById('incomeNote').value
+            };
+
+            addIncome(income);
+            this.reset();
+            document.getElementById('incomeDate').value = getToday();
+            document.querySelector('input[name="platform"][value="gojek"]').checked = true;
+
+            // Reset filter to show current month
+            const currentMonth = getToday().substring(0, 7);
+            document.getElementById('incomeFilterMonth').value = currentMonth;
+
+            loadIncomeList();
+            updateDashboard();
+            showToast('Pendapatan berhasil ditambahkan');
+        } catch (err) {
+            console.error('Error adding income:', err);
+            showToast('Gagal menyimpan: ' + err.message, 'error');
+        }
     });
 
     // Expense form
