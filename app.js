@@ -358,9 +358,7 @@ function updateDashboard() {
 
     // Update summary cards
     document.getElementById('summaryGojek').textContent = formatRupiah(summary.gojek.total);
-    document.getElementById('summaryGojekOrders').textContent = `${summary.gojek.orders} order`;
     document.getElementById('summaryGrab').textContent = formatRupiah(summary.grab.total);
-    document.getElementById('summaryGrabOrders').textContent = `${summary.grab.orders} order`;
     document.getElementById('summaryExpense').textContent = formatRupiah(summary.totalExpense);
 
     // Update target progress
