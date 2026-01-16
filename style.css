@@ -274,7 +274,7 @@ body {
 /* ==================== SUMMARY GRID ==================== */
 .summary-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 1fr 1fr auto;
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -293,6 +293,16 @@ body {
     margin-bottom: 12px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
+}
+
+.card-header-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-header-inline .card-amount {
+    margin-left: auto;
 }
 
 .card-logo {
@@ -334,8 +344,9 @@ body {
     color: var(--text-gray);
 }
 
-.card-detail.net strong {
-    color: var(--success);
+.expense-card {
+    display: flex;
+    align-items: center;
 }
 
 /* ==================== STATS ROW ==================== */
@@ -1848,8 +1859,12 @@ body {
     }
 
     .summary-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr 1fr;
         gap: 12px;
+    }
+
+    .summary-grid .expense-card {
+        grid-column: span 2;
     }
 
     .summary-card {

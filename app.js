@@ -361,10 +361,7 @@ function updateDashboard() {
     document.getElementById('summaryGojekOrders').textContent = `${summary.gojek.orders} order`;
     document.getElementById('summaryGrab').textContent = formatRupiah(summary.grab.total);
     document.getElementById('summaryGrabOrders').textContent = `${summary.grab.orders} order`;
-    document.getElementById('summaryTotal').textContent = formatRupiah(summary.totalIncome);
-    document.getElementById('summaryTotalOrders').textContent = `${summary.totalOrders} order`;
     document.getElementById('summaryExpense').textContent = formatRupiah(summary.totalExpense);
-    document.getElementById('summaryNet').textContent = formatRupiah(summary.netIncome);
 
     // Update target progress
     const targetPercent = target > 0 ? Math.min(100, (summary.netIncome / target) * 100) : 0;
