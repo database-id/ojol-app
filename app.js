@@ -1108,23 +1108,25 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('incomeForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         try {
-            const platform = document.querySelector('input[name="platform"]:checked').value;
-            const dateVal = document.getElementById('incomeDate').value;
-            const amountVal = document.getElementById('incomeAmount').value;
-            const ordersVal = document.getElementById('incomeOrders').value;
+            const platform = document.querySelector('input[name="platform"]:checked')?.value;
+            const dateVal = document.getElementById('incomeDate')?.value;
+            const amountVal = document.getElementById('incomeAmount')?.value;
+            const ordersVal = document.getElementById('incomeOrders')?.value;
+            const bonusVal = document.getElementById('incomeBonus')?.value;
+            const noteVal = document.getElementById('incomeNote')?.value;
 
-            if (!dateVal || !amountVal || !ordersVal) {
-                showToast('Please fill all fields', 'error');
+            if (!platform || !dateVal || !amountVal || !ordersVal) {
+                showToast('Please fill all required fields', 'error');
                 return;
             }
 
             const income = {
-                platform,
+                platform: platform,
                 date: dateVal,
                 amount: parseInt(amountVal) || 0,
                 orders: parseInt(ordersVal) || 0,
-                bonus: parseInt(document.getElementById('incomeBonus').value) || 0,
-                note: document.getElementById('incomeNote').value
+                bonus: parseInt(bonusVal) || 0,
+                note: noteVal || ''
             };
 
             const result = await addIncome(income);
@@ -1149,11 +1151,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Expense form
     document.getElementById('expenseForm').addEventListener('submit', async function(e) {
         e.preventDefault();
+        const categoryVal = document.getElementById('expenseCategory')?.value;
+        const dateVal = document.getElementById('expenseDate')?.value;
+        const amountVal = document.getElementById('expenseAmount')?.value;
+        const noteVal = document.getElementById('expenseNote')?.value;
+
+        if (!categoryVal || !dateVal || !amountVal) {
+            showToast('Please fill all required fields', 'error');
+            return;
+        }
+
         const expense = {
-            category: document.getElementById('expenseCategory').value,
-            date: document.getElementById('expenseDate').value,
-            amount: parseInt(document.getElementById('expenseAmount').value) || 0,
-            note: document.getElementById('expenseNote').value
+            category: categoryVal,
+            date: dateVal,
+            amount: parseInt(amountVal) || 0,
+            note: noteVal || ''
         };
 
         const result = await addExpense(expense);
