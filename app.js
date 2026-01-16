@@ -376,6 +376,9 @@ function updateDashboard() {
     const targetHeader = document.querySelector('.target-section .section-header h3');
     if (targetHeader) targetHeader.textContent = targetLabel;
 
+    // Update visual chart
+    updateIncomeChart(daySummary, dailyTarget);
+
     // Weekly data (from selected date's week)
     updateWeeklySection();
 
@@ -384,6 +387,47 @@ function updateDashboard() {
 
     // Recent activity for selected date
     loadRecentActivity();
+}
+
+// Update visual income chart
+function updateIncomeChart(summary, target) {
+    const gojekIncome = summary.gojek.total;
+    const grabIncome = summary.grab.total;
+    const totalIncome = summary.totalIncome;
+
+    // Calculate max value for scaling (either target or highest income)
+    const maxValue = Math.max(target, totalIncome, gojekIncome, grabIncome, 1);
+    const chartHeight = 150; // Max height in pixels
+
+    // Calculate bar heights
+    const gojekHeight = Math.max(4, (gojekIncome / maxValue) * chartHeight);
+    const grabHeight = Math.max(4, (grabIncome / maxValue) * chartHeight);
+    const totalHeight = Math.max(4, (totalIncome / maxValue) * chartHeight);
+
+    // Update bar heights
+    document.getElementById('chartBarGojek').style.height = `${gojekHeight}px`;
+    document.getElementById('chartBarGrab').style.height = `${grabHeight}px`;
+    document.getElementById('chartBarTotal').style.height = `${totalHeight}px`;
+
+    // Update bar values
+    document.getElementById('chartGojekValue').textContent = formatRupiahShort(gojekIncome);
+    document.getElementById('chartGrabValue').textContent = formatRupiahShort(grabIncome);
+    document.getElementById('chartTotalValue').textContent = formatRupiahShort(totalIncome);
+
+    // Update target line position
+    const targetLinePosition = 30 + (target / maxValue) * chartHeight;
+    document.getElementById('chartTargetLine').style.bottom = `${targetLinePosition}px`;
+    document.getElementById('chartTargetValue').textContent = formatRupiahShort(target);
+}
+
+// Format rupiah in short form (K for thousands)
+function formatRupiahShort(num) {
+    if (num >= 1000000) {
+        return 'Rp ' + (num / 1000000).toFixed(1) + 'jt';
+    } else if (num >= 1000) {
+        return 'Rp ' + (num / 1000).toFixed(0) + 'rb';
+    }
+    return 'Rp ' + num;
 }
 
 // Update weekly section with data
