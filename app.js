@@ -1,3 +1,60 @@
+// ==================== LOGIN SYSTEM ====================
+const AUTH = {
+    USERNAME: 'wafi',
+    PASSWORD: 'wafi123',
+    SESSION_KEY: 'ojol_logged_in'
+};
+
+// Check if user is logged in
+function checkLogin() {
+    const isLoggedIn = sessionStorage.getItem(AUTH.SESSION_KEY);
+    if (isLoggedIn === 'true') {
+        showApp();
+    } else {
+        showLogin();
+    }
+}
+
+// Show login page
+function showLogin() {
+    document.getElementById('loginPage').style.display = 'flex';
+    document.getElementById('appContainer').style.display = 'none';
+}
+
+// Show main app
+function showApp() {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('appContainer').style.display = 'flex';
+}
+
+// Handle login
+function handleLogin(e) {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+    const errorEl = document.getElementById('loginError');
+
+    if (username === AUTH.USERNAME && password === AUTH.PASSWORD) {
+        sessionStorage.setItem(AUTH.SESSION_KEY, 'true');
+        errorEl.textContent = '';
+        showApp();
+        initFilters();
+        updateDashboard();
+    } else {
+        errorEl.textContent = 'Invalid username or password';
+    }
+}
+
+// Handle logout
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        sessionStorage.removeItem(AUTH.SESSION_KEY);
+        showLogin();
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+    }
+}
+
 // ==================== DATA STORAGE ====================
 const STORAGE_KEYS = {
     INCOME: 'ojol_income',
@@ -1162,9 +1219,18 @@ function initFilters() {
 
 // ==================== EVENT LISTENERS ====================
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize
-    initFilters();
-    updateDashboard();
+    // Check login status first
+    checkLogin();
+
+    // Login form handler
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+
+    // Initialize only if logged in
+    const isLoggedIn = sessionStorage.getItem(AUTH.SESSION_KEY) === 'true';
+    if (isLoggedIn) {
+        initFilters();
+        updateDashboard();
+    }
 
     // Set default dates
     document.getElementById('incomeDate').value = getToday();
