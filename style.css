@@ -48,6 +48,12 @@ body {
 /* ==================== SIDEBAR ==================== */
 .sidebar {
     width: 260px;
+    position: fixed;
+    left: -260px;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    transition: left 0.3s ease;
     background: var(--bg-white);
     padding: 24px;
     display: flex;
@@ -130,8 +136,9 @@ body {
 /* ==================== MAIN CONTENT ==================== */
 .main-content {
     flex: 1;
-    margin-left: 260px;
+    margin-left: 0;
     padding: 32px;
+    padding-top: 72px;
     max-width: 1200px;
 }
 
@@ -1942,7 +1949,7 @@ body {
 
 /* Hamburger Menu Button */
 .mobile-menu-btn {
-    display: none;
+    display: block;
     position: fixed;
     top: 16px;
     left: 16px;
@@ -1974,6 +1981,14 @@ body {
     bottom: 0;
     background: rgba(0,0,0,0.5);
     z-index: 999;
+}
+
+.mobile-overlay.show {
+    display: block;
+}
+
+.sidebar.show {
+    left: 0;
 }
 
 /* Bottom Navigation for Mobile */
@@ -2022,33 +2037,11 @@ body {
 }
 
 @media (max-width: 768px) {
-    .mobile-menu-btn {
-        display: block;
-    }
-
-    .mobile-overlay.show {
-        display: block;
-    }
-
     .bottom-nav {
         display: block;
     }
 
-    .sidebar {
-        position: fixed;
-        left: -260px;
-        top: 0;
-        bottom: 0;
-        z-index: 1000;
-        transition: left 0.3s ease;
-    }
-
-    .sidebar.show {
-        left: 0;
-    }
-
     .main-content {
-        margin-left: 0;
         padding: 16px;
         padding-top: 72px;
         padding-bottom: 80px;
