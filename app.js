@@ -32,14 +32,14 @@ function getToday() {
 
 function formatDate(dateStr) {
     const date = new Date(dateStr);
-    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 function formatDateShort(dateStr) {
     const date = new Date(dateStr);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${date.getDate()} ${months[date.getMonth()]}`;
 }
 
@@ -325,7 +325,7 @@ function updateDashboard() {
         const dayExpenses = getExpenseByDate(selectedDate);
         summary = calculateSummary(dayIncomes, dayExpenses);
         target = getDailyTarget(selectedDate);
-        targetLabel = isWeekend(selectedDate) ? 'Target Weekend' : 'Target Hari Kerja';
+        targetLabel = isWeekend(selectedDate) ? 'Weekend Target' : 'Weekday Target';
     } else if (currentDashboardView === 'weekly') {
         // Weekly view - show week range
         const weekRange = getWeekRangeFromDate(selectedDate);
@@ -334,10 +334,10 @@ function updateDashboard() {
         const weekExpenses = getExpenseByDateRange(weekRange.start, weekRange.end);
         summary = calculateSummary(weekIncomes, weekExpenses);
         target = getTarget().weekly;
-        targetLabel = 'Target Mingguan';
+        targetLabel = 'Weekly Target';
     } else if (currentDashboardView === 'monthly') {
         // Monthly view
-        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         document.getElementById('monthLabel').textContent = `${monthNames[selectedMonth - 1]} ${selectedYear}`;
 
         const monthRange = getMonthRange(selectedYear, selectedMonth);
@@ -345,7 +345,7 @@ function updateDashboard() {
         const monthExpenses = getExpenseByDateRange(monthRange.start, monthRange.end);
         summary = calculateSummary(monthIncomes, monthExpenses);
         target = getTarget().monthly;
-        targetLabel = 'Target Bulanan';
+        targetLabel = 'Monthly Target';
     }
 
     // Update summary cards
@@ -419,7 +419,7 @@ function loadDailyTable(dateStr) {
     const tbody = document.getElementById('activityTableBody');
 
     if (incomes.length === 0 && expenses.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">Belum ada aktivitas hari ini</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">No activity today</td></tr>';
         return;
     }
 
@@ -467,7 +467,7 @@ function loadDailyTable(dateStr) {
         html += `
             <tr>
                 <td>${formatDateShort(dateStr)}</td>
-                <td>💸 Pengeluaran</td>
+                <td>💸 Expense</td>
                 <td>-</td>
                 <td>-</td>
                 <td class="amount-negative">-${formatRupiah(totalExpense)}</td>
@@ -476,7 +476,7 @@ function loadDailyTable(dateStr) {
         `;
     }
 
-    tbody.innerHTML = html || '<tr><td colspan="6" class="empty-cell">Belum ada aktivitas</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="6" class="empty-cell">No activity</td></tr>';
 }
 
 // Load weekly activity table
@@ -484,7 +484,7 @@ function loadWeeklyTable(weekRange) {
     const tbody = document.getElementById('activityTableBody');
     const startDate = new Date(weekRange.start);
     const endDate = new Date(weekRange.end);
-    const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     let html = '';
     const currentDate = new Date(startDate);
@@ -511,7 +511,7 @@ function loadWeeklyTable(weekRange) {
         currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    tbody.innerHTML = html || '<tr><td colspan="6" class="empty-cell">Belum ada aktivitas</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="6" class="empty-cell">No activity</td></tr>';
 }
 
 // Load monthly activity table
@@ -541,7 +541,7 @@ function loadMonthlyTable(monthRange) {
 
         html += `
             <tr>
-                <td>Minggu ${weekNum}</td>
+                <td>Week ${weekNum}</td>
                 <td>${formatDateShort(weekStartStr)} - ${formatDateShort(weekEndStr)}</td>
                 <td>${formatRupiah(weekSummary.totalIncome)}</td>
                 <td>${weekSummary.totalOrders}</td>
@@ -554,7 +554,7 @@ function loadMonthlyTable(monthRange) {
         weekNum++;
     }
 
-    tbody.innerHTML = html || '<tr><td colspan="6" class="empty-cell">Belum ada aktivitas</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="6" class="empty-cell">No activity</td></tr>';
 }
 
 // Update weekly section with data (keep for compatibility)
@@ -590,9 +590,9 @@ function loadWeeklyDailyBreakdown(weekRange) {
     const container = document.getElementById('weeklyDailyBreakdown');
     const startDate = new Date(weekRange.start);
     const endDate = new Date(weekRange.end);
-    const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-    let html = '<h4 style="font-size: 14px; color: var(--text-gray); margin-bottom: 12px;">Detail per Hari</h4>';
+    let html = '<h4 style="font-size: 14px; color: var(--text-gray); margin-bottom: 12px;">Daily Details</h4>';
 
     const currentDate = new Date(startDate);
     while (currentDate <= endDate) {
@@ -613,7 +613,7 @@ function loadWeeklyDailyBreakdown(weekRange) {
                     </div>
                     <div class="breakdown-item-amount">
                         <span class="breakdown-item-total ${daySummary.netIncome >= 0 ? 'positive' : 'negative'}">${formatRupiah(daySummary.netIncome)}</span>
-                        <span class="breakdown-item-detail">${daySummary.totalOrders} order • ${formatRupiah(daySummary.totalExpense)} keluar</span>
+                        <span class="breakdown-item-detail">${daySummary.totalOrders} order • ${formatRupiah(daySummary.totalExpense)} out</span>
                     </div>
                 </div>
             `;
@@ -627,7 +627,7 @@ function loadWeeklyDailyBreakdown(weekRange) {
 
 // Update monthly section with data
 function updateMonthlySection() {
-    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     document.getElementById('monthLabel').textContent = `${monthNames[selectedMonth - 1]} ${selectedYear}`;
 
     const monthRange = getMonthRange(selectedYear, selectedMonth);
@@ -659,7 +659,7 @@ function loadMonthlyWeeklyBreakdown(monthRange) {
     const startDate = new Date(monthRange.start);
     const endDate = new Date(monthRange.end);
 
-    let html = '<h4 style="font-size: 14px; color: var(--text-gray); margin-bottom: 12px;">Detail per Minggu</h4>';
+    let html = '<h4 style="font-size: 14px; color: var(--text-gray); margin-bottom: 12px;">Weekly Details</h4>';
 
     let weekNum = 1;
     let currentWeekStart = new Date(startDate);
@@ -684,12 +684,12 @@ function loadMonthlyWeeklyBreakdown(monthRange) {
         html += `
             <div class="breakdown-item">
                 <div>
-                    <span class="breakdown-item-date">Minggu ${weekNum}</span>
+                    <span class="breakdown-item-date">Week ${weekNum}</span>
                     <span class="breakdown-item-day">${formatDateShort(weekStartStr)} - ${formatDateShort(weekEndStr)}</span>
                 </div>
                 <div class="breakdown-item-amount">
                     <span class="breakdown-item-total ${weekSummary.netIncome >= 0 ? 'positive' : 'negative'}">${formatRupiah(weekSummary.netIncome)}</span>
-                    <span class="breakdown-item-detail">${weekSummary.totalOrders} order • ${formatRupiah(weekSummary.totalExpense)} keluar</span>
+                    <span class="breakdown-item-detail">${weekSummary.totalOrders} order • ${formatRupiah(weekSummary.totalExpense)} out</span>
                 </div>
             </div>
         `;
@@ -743,7 +743,7 @@ function loadRecentActivity() {
 
     // Update activity header
     const isToday = selectedDate === getToday();
-    const headerText = isToday ? 'Aktivitas Hari Ini' : `Aktivitas ${formatDateShort(selectedDate)}`;
+    const headerText = isToday ? 'Today Activity' : `Activity ${formatDateShort(selectedDate)}`;
     document.getElementById('activityHeader').textContent = headerText;
 
     const activities = [
@@ -754,12 +754,12 @@ function loadRecentActivity() {
     const container = document.getElementById('recentList');
 
     if (activities.length === 0) {
-        const emptyText = isToday ? 'Belum ada data hari ini' : `Tidak ada data pada ${formatDateShort(selectedDate)}`;
+        const emptyText = isToday ? 'No data today' : `No data on ${formatDateShort(selectedDate)}`;
         container.innerHTML = `
             <div class="empty-state">
                 <span class="empty-icon">📝</span>
                 <p>${emptyText}</p>
-                <button class="btn btn-primary" onclick="switchPage('pendapatan')">Tambah Pendapatan</button>
+                <button class="btn btn-primary" onclick="switchPage('pendapatan')">Add Income</button>
             </div>
         `;
         return;
@@ -791,14 +791,14 @@ function loadRecentActivity() {
             `;
         } else {
             const icons = { bensin: '⛽', pulsa: '📱', makan: '🍜', ngopi: '☕', service: '🔧', parkir: '🅿️', lainnya: '📦' };
-            const labels = { bensin: 'Bensin', pulsa: 'Pulsa/Data', makan: 'Makan', ngopi: 'Ngopi', service: 'Service', parkir: 'Parkir', lainnya: 'Lainnya' };
+            const labels = { bensin: 'Fuel', pulsa: 'Data/Phone', makan: 'Food', ngopi: 'Coffee', service: 'Service', parkir: 'Parking', lainnya: 'Others' };
             return `
                 <div class="recent-item">
                     <div class="recent-item-left">
                         <div class="recent-platform expense">${icons[item.category]}</div>
                         <div class="recent-info">
                             <h4>${labels[item.category]}</h4>
-                            <p>${item.note || 'Pengeluaran'}</p>
+                            <p>${item.note || 'Expense'}</p>
                         </div>
                     </div>
                     <div class="recent-item-right">
@@ -832,7 +832,7 @@ function loadIncomeList() {
         container.innerHTML = `
             <div class="empty-state">
                 <span class="empty-icon">📝</span>
-                <p>Belum ada data pendapatan</p>
+                <p>No income data</p>
             </div>
         `;
         return;
@@ -873,7 +873,7 @@ function editIncome(id) {
     const item = incomes.find(i => i.id === id);
     if (!item) return;
 
-    document.getElementById('editModalTitle').textContent = 'Edit Pendapatan';
+    document.getElementById('editModalTitle').textContent = 'Edit Income';
     document.getElementById('editId').value = id;
     document.getElementById('editType').value = 'income';
 
@@ -886,15 +886,15 @@ function editIncome(id) {
             </select>
         </div>
         <div class="form-group">
-            <label>Tanggal</label>
+            <label>Date</label>
             <input type="date" id="editDate" value="${item.date}">
         </div>
         <div class="form-group">
-            <label>Pendapatan (Rp)</label>
+            <label>Income (Rp)</label>
             <input type="number" id="editAmount" value="${item.amount}">
         </div>
         <div class="form-group">
-            <label>Jumlah Order</label>
+            <label>Total Orders</label>
             <input type="number" id="editOrders" value="${item.orders}">
         </div>
         <div class="form-group">
@@ -902,7 +902,7 @@ function editIncome(id) {
             <input type="number" id="editBonus" value="${item.bonus || 0}">
         </div>
         <div class="form-group">
-            <label>Catatan</label>
+            <label>Note</label>
             <input type="text" id="editNote" value="${item.note || ''}">
         </div>
     `;
@@ -911,11 +911,11 @@ function editIncome(id) {
 }
 
 function confirmDeleteIncome(id) {
-    if (confirm('Yakin ingin menghapus data ini?')) {
+    if (confirm('Are you sure you want to delete this data?')) {
         deleteIncome(id);
         loadIncomeList();
         updateDashboard();
-        showToast('Data berhasil dihapus');
+        showToast('Data deleted successfully');
     }
 }
 
@@ -937,13 +937,13 @@ function loadExpenseList() {
 
     const container = document.getElementById('expenseList');
     const icons = { bensin: '⛽', pulsa: '📱', makan: '🍜', ngopi: '☕', service: '🔧', parkir: '🅿️', lainnya: '📦' };
-    const labels = { bensin: 'Bensin', pulsa: 'Pulsa/Data', makan: 'Makan', ngopi: 'Ngopi', service: 'Service', parkir: 'Parkir', lainnya: 'Lainnya' };
+    const labels = { bensin: 'Fuel', pulsa: 'Data/Phone', makan: 'Food', ngopi: 'Coffee', service: 'Service', parkir: 'Parking', lainnya: 'Others' };
 
     if (expenses.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <span class="empty-icon">📝</span>
-                <p>Belum ada data pengeluaran</p>
+                <p>No expense data</p>
             </div>
         `;
         return;
@@ -978,30 +978,30 @@ function editExpense(id) {
     const item = expenses.find(e => e.id === id);
     if (!item) return;
 
-    document.getElementById('editModalTitle').textContent = 'Edit Pengeluaran';
+    document.getElementById('editModalTitle').textContent = 'Edit Expense';
     document.getElementById('editId').value = id;
     document.getElementById('editType').value = 'expense';
 
     const categories = ['bensin', 'pulsa', 'makan', 'ngopi', 'service', 'parkir', 'lainnya'];
-    const labels = { bensin: 'Bensin', pulsa: 'Pulsa/Data', makan: 'Makan', ngopi: 'Ngopi', service: 'Service', parkir: 'Parkir', lainnya: 'Lainnya' };
+    const labels = { bensin: 'Fuel', pulsa: 'Data/Phone', makan: 'Food', ngopi: 'Coffee', service: 'Service', parkir: 'Parking', lainnya: 'Others' };
 
     document.getElementById('editFormContent').innerHTML = `
         <div class="form-group">
-            <label>Kategori</label>
+            <label>Category</label>
             <select id="editCategory">
                 ${categories.map(c => `<option value="${c}" ${item.category === c ? 'selected' : ''}>${labels[c]}</option>`).join('')}
             </select>
         </div>
         <div class="form-group">
-            <label>Tanggal</label>
+            <label>Date</label>
             <input type="date" id="editDate" value="${item.date}">
         </div>
         <div class="form-group">
-            <label>Jumlah (Rp)</label>
+            <label>Amount (Rp)</label>
             <input type="number" id="editAmount" value="${item.amount}">
         </div>
         <div class="form-group">
-            <label>Catatan</label>
+            <label>Note</label>
             <input type="text" id="editNote" value="${item.note || ''}">
         </div>
     `;
@@ -1010,11 +1010,11 @@ function editExpense(id) {
 }
 
 function confirmDeleteExpense(id) {
-    if (confirm('Yakin ingin menghapus data ini?')) {
+    if (confirm('Are you sure you want to delete this data?')) {
         deleteExpense(id);
         loadExpenseList();
         updateDashboard();
-        showToast('Data berhasil dihapus');
+        showToast('Data deleted successfully');
     }
 }
 
@@ -1052,7 +1052,7 @@ function loadTargetPage() {
     document.getElementById('dailyRing').style.background = `conic-gradient(var(--primary) ${dailyPercent}%, var(--border) ${dailyPercent}%)`;
 
     // Show weekday/weekend label
-    const dayLabel = isWeekend(today) ? 'Hari Ini (Weekend)' : 'Hari Ini (Hari Kerja)';
+    const dayLabel = isWeekend(today) ? 'Today (Weekend)' : 'Today (Weekday)';
     const targetTodayLabel = document.querySelector('.target-card:first-child .target-label');
     if (targetTodayLabel) targetTodayLabel.textContent = dayLabel;
     document.getElementById('targetTodayDate').textContent = formatDateShort(today);
@@ -1072,7 +1072,7 @@ function loadTargetPage() {
     document.getElementById('monthlyGoal').textContent = formatRupiah(target.monthly);
     document.getElementById('monthlyRing').style.background = `conic-gradient(var(--primary) ${monthlyPercent}%, var(--border) ${monthlyPercent}%)`;
 
-    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     document.getElementById('targetMonthDate').textContent = months[now.getMonth()];
 }
 
@@ -1108,7 +1108,7 @@ function saveEdit(e) {
 
     closeEditModal();
     updateDashboard();
-    showToast('Data berhasil diupdate');
+    showToast('Data updated successfully');
 }
 
 // ==================== EXPORT DATA ====================
@@ -1127,7 +1127,7 @@ function exportData() {
     a.download = `ojol-data-${getToday()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Data berhasil di-export');
+    showToast('Data exported successfully');
 }
 
 // ==================== INITIALIZE FILTERS ====================
@@ -1139,7 +1139,7 @@ function initFilters() {
     for (let i = 0; i < 12; i++) {
         const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         const label = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
         months.push({ value, label });
     }
@@ -1187,7 +1187,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const ordersVal = document.getElementById('incomeOrders').value;
 
             if (!dateVal || !amountVal || !ordersVal) {
-                showToast('Lengkapi semua field', 'error');
+                showToast('Please fill all fields', 'error');
                 return;
             }
 
@@ -1211,10 +1211,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             loadIncomeList();
             updateDashboard();
-            showToast('Pendapatan berhasil ditambahkan');
+            showToast('Income added successfully');
         } catch (err) {
             console.error('Error adding income:', err);
-            showToast('Gagal menyimpan: ' + err.message, 'error');
+            showToast('Failed to save: ' + err.message, 'error');
         }
     });
 
@@ -1232,7 +1232,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('expenseDate').value = getToday();
         loadExpenseList();
         updateDashboard();
-        showToast('Pengeluaran berhasil ditambahkan');
+        showToast('Expense added successfully');
     });
 
     // Target form
@@ -1250,7 +1250,7 @@ document.addEventListener('DOMContentLoaded', function() {
         saveTarget(target);
         loadTargetPage();
         updateDashboard();
-        showToast('Target berhasil disimpan');
+        showToast('Target saved successfully');
     });
 
     // Auto-calculate weekly target when weekday/weekend changes

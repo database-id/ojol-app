@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ojol Tracker - Rekap Gojek & Grab</title>
+    <title>Ojol Performance - Gojek & Grab Tracker</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,20 +12,19 @@
         <nav class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <span class="logo-icon">🏍️</span>
-                    <h1>Ojol Tracker</h1>
+                    <img src="ojol-logo.avif" alt="Ojol" class="logo-img">
+                    <h1>Ojol Performance</h1>
                 </div>
-                <p class="tagline">Rekap Gojek & Grab</p>
             </div>
             <ul class="nav-menu">
                 <li class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
                     <span class="icon">📊</span> Dashboard
                 </li>
                 <li class="nav-item" data-page="pendapatan" onclick="switchPage('pendapatan')">
-                    <span class="icon">💰</span> Pendapatan
+                    <span class="icon">💰</span> Income
                 </li>
                 <li class="nav-item" data-page="pengeluaran" onclick="switchPage('pengeluaran')">
-                    <span class="icon">💸</span> Pengeluaran
+                    <span class="icon">💸</span> Expense
                 </li>
                 <li class="nav-item" data-page="target" onclick="switchPage('target')">
                     <span class="icon">🎯</span> Target
@@ -44,22 +43,22 @@
                 <div class="dashboard-header">
                     <h2>Dashboard</h2>
                     <div class="period-tabs">
-                        <button class="period-tab active" data-view="daily" onclick="switchDashboardView('daily')">Harian</button>
-                        <button class="period-tab" data-view="weekly" onclick="switchDashboardView('weekly')">Mingguan</button>
-                        <button class="period-tab" data-view="monthly" onclick="switchDashboardView('monthly')">Bulanan</button>
+                        <button class="period-tab active" data-view="daily" onclick="switchDashboardView('daily')">Daily</button>
+                        <button class="period-tab" data-view="weekly" onclick="switchDashboardView('weekly')">Weekly</button>
+                        <button class="period-tab" data-view="monthly" onclick="switchDashboardView('monthly')">Monthly</button>
                     </div>
                     <div class="date-navigator" id="dateNavigator">
                         <button class="nav-btn" onclick="navigateDate(-1)">‹</button>
                         <div class="date-picker-wrapper" onclick="openDatePicker()">
                             <input type="date" id="dashboardDate" onchange="loadDashboardByDate()">
-                            <span class="date-display" id="currentDate">Kamis, 16 Januari 2026</span>
+                            <span class="date-display" id="currentDate">Thursday, 16 January 2026</span>
                         </div>
                         <button class="nav-btn" onclick="navigateDate(1)">›</button>
-                        <button class="btn-today" onclick="goToToday()">Hari Ini</button>
+                        <button class="btn-today" onclick="goToToday()">Today</button>
                     </div>
                     <div class="month-navigator" id="monthNavigator" style="display: none;">
                         <button class="nav-btn" onclick="navigateMonth(-1)">‹</button>
-                        <span class="month-display" id="monthLabel">Januari 2026</span>
+                        <span class="month-display" id="monthLabel">January 2026</span>
                         <button class="nav-btn" onclick="navigateMonth(1)">›</button>
                     </div>
                 </div>
@@ -80,7 +79,7 @@
                 <div class="stats-row">
                     <!-- Progress Ring -->
                     <div class="mini-chart-card">
-                        <h4>Pencapaian</h4>
+                        <h4>Achievement</h4>
                         <div class="progress-ring-container">
                             <div class="progress-ring" id="progressRing">
                                 <div class="progress-ring-inner">
@@ -93,27 +92,27 @@
                                     <span class="info-value" id="targetValue">Rp 0</span>
                                 </div>
                                 <div class="progress-info-item">
-                                    <span class="info-label">Tercapai</span>
+                                    <span class="info-label">Achieved</span>
                                     <span class="info-value achieved" id="achievedValue">Rp 0</span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- Ringkasan -->
+                    <!-- Summary -->
                     <div class="quick-stats-card">
-                        <h4>Ringkasan</h4>
+                        <h4>Summary</h4>
                         <div class="quick-stat-list">
                             <div class="quick-stat-item clickable" onclick="switchPage('pendapatan')">
-                                <span class="qs-label">Pendapatan</span>
+                                <span class="qs-label">Income</span>
                                 <span class="qs-value income" id="statIncome">Rp 0</span>
                             </div>
                             <div class="quick-stat-item clickable" onclick="switchPage('pengeluaran')">
-                                <span class="qs-label">Pengeluaran</span>
+                                <span class="qs-label">Expense</span>
                                 <span class="qs-value expense" id="statExpense">Rp 0</span>
                             </div>
                             <div class="qs-divider"></div>
                             <div class="quick-stat-item total-row">
-                                <span class="qs-label">Bersih</span>
+                                <span class="qs-label">Net</span>
                                 <span class="qs-value" id="statNet">Rp 0</span>
                             </div>
                         </div>
@@ -121,17 +120,17 @@
                 </div>
             </section>
 
-            <!-- PENDAPATAN -->
+            <!-- INCOME -->
             <section id="pendapatanSection" class="content-section" style="display:none;">
                 <div class="page-header">
-                    <h2>Input Pendapatan</h2>
-                    <p class="page-subtitle">Catat pendapatan harian dari Gojek & Grab</p>
+                    <h2>Add Income</h2>
+                    <p class="page-subtitle">Record daily income from Gojek & Grab</p>
                 </div>
 
                 <!-- Quick Add -->
                 <div class="quick-add-section">
                     <div class="form-card">
-                        <h3>Tambah Pendapatan</h3>
+                        <h3>Add Income</h3>
                         <form id="incomeForm">
                             <div class="form-row">
                                 <div class="form-group">
@@ -154,31 +153,31 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label>Tanggal</label>
+                                    <label>Date</label>
                                     <input type="date" id="incomeDate" required>
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Pendapatan (Rp)</label>
+                                    <label>Income (Rp)</label>
                                     <input type="number" id="incomeAmount" placeholder="150000" required>
                                 </div>
                                 <div class="form-group">
-                                    <label>Jumlah Order</label>
+                                    <label>Total Orders</label>
                                     <input type="number" id="incomeOrders" placeholder="10" required>
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Bonus/Insentif (Rp)</label>
+                                    <label>Bonus/Incentive (Rp)</label>
                                     <input type="number" id="incomeBonus" placeholder="0" value="0">
                                 </div>
                                 <div class="form-group">
-                                    <label>Catatan</label>
-                                    <input type="text" id="incomeNote" placeholder="Opsional">
+                                    <label>Note</label>
+                                    <input type="text" id="incomeNote" placeholder="Optional">
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-block">Simpan Pendapatan</button>
+                            <button type="submit" class="btn btn-primary btn-block">Save Income</button>
                         </form>
                     </div>
                 </div>
@@ -186,13 +185,13 @@
                 <!-- Income List -->
                 <div class="list-section">
                     <div class="section-header">
-                        <h3>Riwayat Pendapatan</h3>
+                        <h3>Income History</h3>
                         <div class="filter-group">
                             <select id="incomeFilterMonth">
-                                <option value="">Semua Bulan</option>
+                                <option value="">All Months</option>
                             </select>
                             <select id="incomeFilterPlatform">
-                                <option value="">Semua Platform</option>
+                                <option value="">All Platforms</option>
                                 <option value="gojek">Gojek</option>
                                 <option value="grab">Grab</option>
                             </select>
@@ -202,47 +201,47 @@
                 </div>
             </section>
 
-            <!-- PENGELUARAN -->
+            <!-- EXPENSE -->
             <section id="pengeluaranSection" class="content-section" style="display:none;">
                 <div class="page-header">
-                    <h2>Input Pengeluaran</h2>
-                    <p class="page-subtitle">Catat pengeluaran operasional harian</p>
+                    <h2>Add Expense</h2>
+                    <p class="page-subtitle">Record daily operational expenses</p>
                 </div>
 
                 <!-- Quick Add -->
                 <div class="quick-add-section">
                     <div class="form-card">
-                        <h3>Tambah Pengeluaran</h3>
+                        <h3>Add Expense</h3>
                         <form id="expenseForm">
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Kategori</label>
+                                    <label>Category</label>
                                     <select id="expenseCategory" required>
-                                        <option value="bensin">⛽ Bensin</option>
-                                        <option value="pulsa">📱 Pulsa/Data</option>
-                                        <option value="makan">🍜 Makan</option>
-                                        <option value="ngopi">☕ Ngopi</option>
-                                        <option value="service">🔧 Service Motor</option>
-                                        <option value="parkir">🅿️ Parkir</option>
-                                        <option value="lainnya">📦 Lainnya</option>
+                                        <option value="bensin">⛽ Fuel</option>
+                                        <option value="pulsa">📱 Data/Phone</option>
+                                        <option value="makan">🍜 Food</option>
+                                        <option value="ngopi">☕ Coffee</option>
+                                        <option value="service">🔧 Service</option>
+                                        <option value="parkir">🅿️ Parking</option>
+                                        <option value="lainnya">📦 Others</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label>Tanggal</label>
+                                    <label>Date</label>
                                     <input type="date" id="expenseDate" required>
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label>Jumlah (Rp)</label>
+                                    <label>Amount (Rp)</label>
                                     <input type="number" id="expenseAmount" placeholder="20000" required>
                                 </div>
                                 <div class="form-group">
-                                    <label>Catatan</label>
-                                    <input type="text" id="expenseNote" placeholder="Opsional">
+                                    <label>Note</label>
+                                    <input type="text" id="expenseNote" placeholder="Optional">
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-block">Simpan Pengeluaran</button>
+                            <button type="submit" class="btn btn-primary btn-block">Save Expense</button>
                         </form>
                     </div>
                 </div>
@@ -250,20 +249,20 @@
                 <!-- Expense List -->
                 <div class="list-section">
                     <div class="section-header">
-                        <h3>Riwayat Pengeluaran</h3>
+                        <h3>Expense History</h3>
                         <div class="filter-group">
                             <select id="expenseFilterMonth">
-                                <option value="">Semua Bulan</option>
+                                <option value="">All Months</option>
                             </select>
                             <select id="expenseFilterCategory">
-                                <option value="">Semua Kategori</option>
-                                <option value="bensin">Bensin</option>
-                                <option value="pulsa">Pulsa/Data</option>
-                                <option value="makan">Makan</option>
-                                <option value="ngopi">Ngopi</option>
+                                <option value="">All Categories</option>
+                                <option value="bensin">Fuel</option>
+                                <option value="pulsa">Data/Phone</option>
+                                <option value="makan">Food</option>
+                                <option value="ngopi">Coffee</option>
                                 <option value="service">Service</option>
-                                <option value="parkir">Parkir</option>
-                                <option value="lainnya">Lainnya</option>
+                                <option value="parkir">Parking</option>
+                                <option value="lainnya">Others</option>
                             </select>
                         </div>
                     </div>
@@ -274,40 +273,40 @@
             <!-- TARGET -->
             <section id="targetSection" class="content-section" style="display:none;">
                 <div class="page-header">
-                    <h2>Target Pendapatan</h2>
-                    <p class="page-subtitle">Atur target harian, mingguan, dan bulanan</p>
+                    <h2>Income Target</h2>
+                    <p class="page-subtitle">Set daily, weekly, and monthly targets</p>
                 </div>
 
                 <div class="target-settings">
                     <div class="form-card">
-                        <h3>Pengaturan Target</h3>
+                        <h3>Target Settings</h3>
                         <form id="targetForm">
                             <div class="target-daily-section">
-                                <label class="section-label">🎯 Target Harian</label>
+                                <label class="section-label">🎯 Daily Target</label>
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label>Hari Kerja (Sen-Jum)</label>
+                                        <label>Weekday (Mon-Fri)</label>
                                         <input type="number" id="targetWeekday" placeholder="30000">
-                                        <small>Target per hari kerja</small>
+                                        <small>Target per weekday</small>
                                     </div>
                                     <div class="form-group">
-                                        <label>Weekend (Sab-Min)</label>
+                                        <label>Weekend (Sat-Sun)</label>
                                         <input type="number" id="targetWeekend" placeholder="70000">
-                                        <small>Target per hari weekend</small>
+                                        <small>Target per weekend day</small>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label>📅 Target Mingguan (Rp)</label>
+                                <label>📅 Weekly Target (Rp)</label>
                                 <input type="number" id="targetWeekly" placeholder="290000">
-                                <small>Target pendapatan bersih per minggu (otomatis: 5x weekday + 2x weekend)</small>
+                                <small>Net income target per week (auto: 5x weekday + 2x weekend)</small>
                             </div>
                             <div class="form-group">
-                                <label>📆 Target Bulanan (Rp)</label>
+                                <label>📆 Monthly Target (Rp)</label>
                                 <input type="number" id="targetMonthly" placeholder="1160000">
-                                <small>Target pendapatan bersih per bulan</small>
+                                <small>Net income target per month</small>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-block">Simpan Target</button>
+                            <button type="submit" class="btn btn-primary btn-block">Save Target</button>
                         </form>
                     </div>
                 </div>
@@ -327,7 +326,7 @@
                 <input type="hidden" id="editId">
                 <input type="hidden" id="editType">
                 <div id="editFormContent"></div>
-                <button type="submit" class="btn btn-primary btn-block">Simpan Perubahan</button>
+                <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
             </form>
         </div>
     </div>
