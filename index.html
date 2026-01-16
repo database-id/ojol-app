@@ -121,55 +121,23 @@
                             <span>Tercapai: <strong id="targetCurrent">Rp 0</strong></span>
                         </div>
                     </div>
-                    <!-- Quick Stats -->
+                    <!-- Ringkasan -->
                     <div class="quick-stats-card">
                         <h4>Ringkasan</h4>
                         <div class="quick-stat-list">
                             <div class="quick-stat-item">
-                                <span class="qs-label" id="statAvgLabel">Pendapatan Bersih</span>
-                                <span class="qs-value" id="statAvgDaily">Rp 0</span>
+                                <span class="qs-label">Pendapatan</span>
+                                <span class="qs-value income" id="statIncome">Rp 0</span>
                             </div>
                             <div class="quick-stat-item">
-                                <span class="qs-label">Total Order</span>
-                                <span class="qs-value" id="statTopPlatform">-</span>
+                                <span class="qs-label">Pengeluaran</span>
+                                <span class="qs-value expense" id="statExpense">Rp 0</span>
                             </div>
                             <div class="quick-stat-item">
-                                <span class="qs-label">Persentase Gojek</span>
-                                <span class="qs-value" id="statGojekPct">0%</span>
-                            </div>
-                            <div class="quick-stat-item">
-                                <span class="qs-label">Persentase Grab</span>
-                                <span class="qs-value" id="statGrabPct">0%</span>
+                                <span class="qs-label">Bersih</span>
+                                <span class="qs-value" id="statNet">Rp 0</span>
                             </div>
                         </div>
-                        <a href="#" class="qs-link" onclick="switchPage('target'); return false;">Ubah Target →</a>
-                    </div>
-                </div>
-
-                <!-- Data Table Section -->
-                <div class="table-section">
-                    <div class="table-header">
-                        <h3 id="tableTitle">Aktivitas Hari Ini</h3>
-                        <span class="table-subtitle" id="tableSubtitle"></span>
-                    </div>
-                    <div class="data-table-container">
-                        <table class="data-table" id="activityTable">
-                            <thead>
-                                <tr>
-                                    <th>Tanggal</th>
-                                    <th>Platform</th>
-                                    <th>Pendapatan</th>
-                                    <th>Order</th>
-                                    <th>Pengeluaran</th>
-                                    <th>Bersih</th>
-                                </tr>
-                            </thead>
-                            <tbody id="activityTableBody">
-                                <tr>
-                                    <td colspan="6" class="empty-cell">Belum ada data</td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </section>

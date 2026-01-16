@@ -317,7 +317,7 @@ function updateDashboard() {
     document.getElementById('dashboardDate').value = selectedDate;
     document.getElementById('currentDate').textContent = formatDate(selectedDate);
 
-    let summary, target, targetLabel, tableTitle, tableSubtitle;
+    let summary, target, targetLabel;
 
     if (currentDashboardView === 'daily') {
         // Daily view
@@ -326,9 +326,6 @@ function updateDashboard() {
         summary = calculateSummary(dayIncomes, dayExpenses);
         target = getDailyTarget(selectedDate);
         targetLabel = isWeekend(selectedDate) ? 'Target Weekend' : 'Target Hari Kerja';
-        tableTitle = 'Aktivitas Hari Ini';
-        tableSubtitle = formatDate(selectedDate);
-        loadDailyTable(selectedDate);
     } else if (currentDashboardView === 'weekly') {
         // Weekly view
         const weekRange = getWeekRangeFromDate(selectedDate);
@@ -337,9 +334,6 @@ function updateDashboard() {
         summary = calculateSummary(weekIncomes, weekExpenses);
         target = getTarget().weekly;
         targetLabel = 'Target Mingguan';
-        tableTitle = 'Aktivitas Minggu Ini';
-        tableSubtitle = `${formatDateShort(weekRange.start)} - ${formatDateShort(weekRange.end)}`;
-        loadWeeklyTable(weekRange);
     } else if (currentDashboardView === 'monthly') {
         // Monthly view
         const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -351,9 +345,6 @@ function updateDashboard() {
         summary = calculateSummary(monthIncomes, monthExpenses);
         target = getTarget().monthly;
         targetLabel = 'Target Bulanan';
-        tableTitle = 'Aktivitas Bulan Ini';
-        tableSubtitle = `${monthNames[selectedMonth - 1]} ${selectedYear}`;
-        loadMonthlyTable(monthRange);
     }
 
     // Update summary cards
@@ -370,10 +361,6 @@ function updateDashboard() {
 
     // Update chart
     updateIncomeChart(summary, target);
-
-    // Update table header
-    document.getElementById('tableTitle').textContent = tableTitle;
-    document.getElementById('tableSubtitle').textContent = tableSubtitle;
 }
 
 // Update mini chart and quick stats
@@ -398,51 +385,24 @@ function updateIncomeChart(summary, target) {
     document.getElementById('chartGrabValue').textContent = formatRupiahShort(grabIncome);
     document.getElementById('chartTotalValue').textContent = formatRupiahShort(totalIncome);
 
-    // Update quick stats
-    updateQuickStats(summary);
+    // Update ringkasan
+    updateRingkasan(summary);
 }
 
-// Update quick stats panel
-function updateQuickStats(summary) {
-    const gojekIncome = summary.gojek.total || 0;
-    const grabIncome = summary.grab.total || 0;
+// Update ringkasan panel
+function updateRingkasan(summary) {
     const totalIncome = summary.totalIncome || 0;
-    const gojekOrders = summary.gojek.orders || 0;
-    const grabOrders = summary.grab.orders || 0;
+    const totalExpense = summary.totalExpense || 0;
     const netIncome = summary.netIncome || 0;
 
-    // Calculate percentages
-    const gojekPct = totalIncome > 0 ? Math.round((gojekIncome / totalIncome) * 100) : 0;
-    const grabPct = totalIncome > 0 ? Math.round((grabIncome / totalIncome) * 100) : 0;
-
-    // Total orders
-    const totalOrders = gojekOrders + grabOrders;
-
-    // Calculate value and label based on view
-    let avgValue = netIncome;
-    let avgLabel = 'Pendapatan Bersih';
-
-    if (currentDashboardView === 'weekly') {
-        avgValue = Math.round(netIncome / 7);
-        avgLabel = 'Rata-rata/hari';
-    } else if (currentDashboardView === 'monthly') {
-        const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-        avgValue = Math.round(netIncome / daysInMonth);
-        avgLabel = 'Rata-rata/hari';
-    }
-
     // Update DOM
-    const labelEl = document.getElementById('statAvgLabel');
-    const avgEl = document.getElementById('statAvgDaily');
-    const orderEl = document.getElementById('statTopPlatform');
-    const gojekEl = document.getElementById('statGojekPct');
-    const grabEl = document.getElementById('statGrabPct');
+    const incomeEl = document.getElementById('statIncome');
+    const expenseEl = document.getElementById('statExpense');
+    const netEl = document.getElementById('statNet');
 
-    if (labelEl) labelEl.textContent = avgLabel;
-    if (avgEl) avgEl.textContent = formatRupiah(avgValue);
-    if (orderEl) orderEl.textContent = `${totalOrders} order`;
-    if (gojekEl) gojekEl.textContent = `${gojekPct}%`;
-    if (grabEl) grabEl.textContent = `${grabPct}%`;
+    if (incomeEl) incomeEl.textContent = formatRupiah(totalIncome);
+    if (expenseEl) expenseEl.textContent = formatRupiah(totalExpense);
+    if (netEl) netEl.textContent = formatRupiah(netIncome);
 }
 
 // Format rupiah in short form (K for thousands)
