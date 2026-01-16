@@ -345,8 +345,8 @@ body {
     white-space: nowrap;
 }
 
-.card-amount.gojek { color: var(--gojek); }
-.card-amount.grab { color: var(--grab); }
+.card-amount.gojek { color: var(--text-dark); }
+.card-amount.grab { color: var(--text-dark); }
 .card-amount.total { color: var(--primary); }
 .card-amount.expense { color: var(--danger); }
 
