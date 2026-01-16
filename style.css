@@ -319,8 +319,9 @@ body {
 }
 
 .card-amount {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .card-amount.gojek { color: var(--gojek); }
@@ -413,6 +414,7 @@ body {
     font-weight: 600;
     color: var(--text-dark);
     text-align: right;
+    white-space: nowrap;
 }
 
 .mini-bar-item.total {
@@ -427,8 +429,12 @@ body {
     margin-top: 12px;
     padding-top: 12px;
     border-top: 1px solid var(--border);
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-gray);
+}
+
+.mini-target span {
+    white-space: nowrap;
 }
 
 .mini-target strong {
@@ -464,6 +470,7 @@ body {
     font-size: 13px;
     font-weight: 600;
     color: var(--text-dark);
+    white-space: nowrap;
 }
 
 .qs-link {
