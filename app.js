@@ -350,7 +350,6 @@ function updateDashboard() {
     // Update summary cards
     document.getElementById('summaryGojek').textContent = formatRupiah(summary.gojek.total);
     document.getElementById('summaryGrab').textContent = formatRupiah(summary.grab.total);
-    document.getElementById('summaryExpense').textContent = formatRupiah(summary.totalExpense);
 
     // Update target progress
     const targetPercent = target > 0 ? (summary.netIncome / target) * 100 : 0;

@@ -274,7 +274,7 @@ body {
 /* ==================== SUMMARY GRID ==================== */
 .summary-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr auto;
+    grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -1870,10 +1870,6 @@ body {
     .summary-grid {
         grid-template-columns: 1fr 1fr;
         gap: 12px;
-    }
-
-    .summary-grid .expense-card {
-        grid-column: span 2;
     }
 
     .summary-card {
