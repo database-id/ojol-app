@@ -284,6 +284,9 @@ body {
     border-radius: var(--radius);
     padding: 16px;
     box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .card-header {
@@ -309,6 +312,12 @@ body {
     width: 28px;
     height: 28px;
     border-radius: 6px;
+    object-fit: contain;
+}
+
+.card-logo-only {
+    width: 36px;
+    height: 36px;
     object-fit: contain;
 }
 
