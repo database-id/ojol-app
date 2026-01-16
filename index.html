@@ -65,8 +65,14 @@
     </div>
 
     <div class="app-container" id="appContainer" style="display: none;">
+        <!-- MOBILE MENU BUTTON -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">☰</button>
+
+        <!-- MOBILE OVERLAY -->
+        <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
+
         <!-- SIDEBAR -->
-        <nav class="sidebar">
+        <nav class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <img src="ojol-logo.avif" alt="Ojol" class="logo-img">

@@ -573,6 +573,14 @@ function calculateSummary(incomes, expenses) {
     };
 }
 
+// ==================== MOBILE MENU ====================
+function toggleMobileMenu() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('mobileOverlay');
+    sidebar.classList.toggle('show');
+    overlay.classList.toggle('show');
+}
+
 // ==================== UI NAVIGATION ====================
 function switchPage(pageName) {
     document.querySelectorAll('.content-section').forEach(section => {
@@ -587,6 +595,11 @@ function switchPage(pageName) {
             item.classList.add('active');
         }
     });
+
+    // Close mobile menu after navigation
+    if (window.innerWidth <= 768) {
+        toggleMobileMenu();
+    }
 
     if (pageName === 'dashboard') updateDashboard();
     else if (pageName === 'pendapatan') loadIncomeList();
