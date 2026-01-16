@@ -317,9 +317,10 @@ body {
 }
 
 .card-logo-only {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
+    border-radius: 8px;
 }
 
 .card-icon-text {
