@@ -577,9 +577,19 @@ function calculateSummary(incomes, expenses) {
 function toggleMobileMenu() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('mobileOverlay');
+    const menuBtn = document.getElementById('mobileMenuBtn');
+
     if (sidebar && overlay) {
+        const isOpening = !sidebar.classList.contains('show');
         sidebar.classList.toggle('show');
         overlay.classList.toggle('show');
+
+        // Hide button when sidebar opens
+        if (isOpening && menuBtn) {
+            menuBtn.classList.add('hide');
+        } else if (menuBtn) {
+            menuBtn.classList.remove('hide');
+        }
     }
 }
 
@@ -593,15 +603,18 @@ function handleMobileMenuScroll() {
 
     if (!menuBtn || window.innerWidth > 768) return;
 
-    // Don't hide if sidebar is open
-    if (sidebar && sidebar.classList.contains('show')) return;
+    // Always hide if sidebar is open
+    if (sidebar && sidebar.classList.contains('show')) {
+        menuBtn.classList.add('hide');
+        return;
+    }
 
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
     clearTimeout(scrollTimeout);
 
-    if (scrollTop > lastScrollTop && scrollTop > 50) {
-        // Scrolling down & past 50px - hide button
+    if (scrollTop > lastScrollTop && scrollTop > 15) {
+        // Scrolling down & past 15px - hide button
         menuBtn.classList.add('hide');
     } else {
         // Scrolling up - show button
@@ -612,7 +625,9 @@ function handleMobileMenuScroll() {
 
     // Show button again after 2 seconds of no scrolling
     scrollTimeout = setTimeout(() => {
-        menuBtn.classList.remove('hide');
+        if (!sidebar || !sidebar.classList.contains('show')) {
+            menuBtn.classList.remove('hide');
+        }
     }, 2000);
 }
 
