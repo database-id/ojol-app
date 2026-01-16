@@ -868,6 +868,20 @@ body {
     color: var(--text-light);
 }
 
+.target-daily-section {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.target-daily-section .section-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+}
+
 /* ==================== PLATFORM SELECTOR ==================== */
 .platform-selector {
     display: flex;

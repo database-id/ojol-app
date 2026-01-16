@@ -160,14 +160,49 @@ function getExpenseByMonth(year, month) {
 // ==================== TARGET FUNCTIONS ====================
 function getTarget() {
     return getStorage(STORAGE_KEYS.TARGET) || {
-        daily: 200000,
-        weekly: 1400000,
-        monthly: 6000000
+        weekday: 30000,
+        weekend: 70000,
+        weekly: 290000,
+        monthly: 1160000
     };
 }
 
 function saveTarget(target) {
     setStorage(STORAGE_KEYS.TARGET, target);
+}
+
+// Get daily target based on day of week
+function getDailyTarget(dateStr) {
+    const target = getTarget();
+    const date = new Date(dateStr);
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+
+    // Weekend is Saturday (6) and Sunday (0)
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+        return target.weekend;
+    }
+    return target.weekday;
+}
+
+// Check if date is weekend
+function isWeekend(dateStr) {
+    const date = new Date(dateStr);
+    const dayOfWeek = date.getDay();
+    return dayOfWeek === 0 || dayOfWeek === 6;
+}
+
+// Auto-calculate weekly and monthly targets based on weekday/weekend
+function autoCalculateTargets() {
+    const weekday = parseInt(document.getElementById('targetWeekday').value) || 0;
+    const weekend = parseInt(document.getElementById('targetWeekend').value) || 0;
+
+    // Weekly = 5 weekdays + 2 weekend days
+    const weeklyTarget = (weekday * 5) + (weekend * 2);
+    document.getElementById('targetWeekly').value = weeklyTarget;
+
+    // Monthly = approximately 4 weeks
+    const monthlyTarget = weeklyTarget * 4;
+    document.getElementById('targetMonthly').value = monthlyTarget;
 }
 
 // ==================== SUMMARY CALCULATIONS ====================
@@ -328,13 +363,18 @@ function updateDashboard() {
     document.getElementById('todayExpense').textContent = formatRupiah(daySummary.totalExpense);
     document.getElementById('todayNet').textContent = formatRupiah(daySummary.netIncome);
 
-    // Target progress
-    const target = getTarget();
-    const targetPercent = target.daily > 0 ? Math.min(100, (daySummary.netIncome / target.daily) * 100) : 0;
+    // Target progress (based on weekday/weekend)
+    const dailyTarget = getDailyTarget(selectedDate);
+    const targetPercent = dailyTarget > 0 ? Math.min(100, (daySummary.netIncome / dailyTarget) * 100) : 0;
     document.getElementById('targetCurrent').textContent = formatRupiah(daySummary.netIncome);
-    document.getElementById('targetGoal').textContent = formatRupiah(target.daily);
+    document.getElementById('targetGoal').textContent = formatRupiah(dailyTarget);
     document.getElementById('targetProgress').style.width = `${targetPercent}%`;
     document.getElementById('targetPercent').textContent = `${Math.round(targetPercent)}%`;
+
+    // Show weekend/weekday indicator
+    const targetLabel = isWeekend(selectedDate) ? 'Target Weekend' : 'Target Hari Kerja';
+    const targetHeader = document.querySelector('.target-section .section-header h3');
+    if (targetHeader) targetHeader.textContent = targetLabel;
 
     // Weekly data (from selected date's week)
     updateWeeklySection();
@@ -893,7 +933,8 @@ function generateBreakdown(year, month) {
 // ==================== TARGET PAGE ====================
 function loadTargetPage() {
     const target = getTarget();
-    document.getElementById('targetDaily').value = target.daily;
+    document.getElementById('targetWeekday').value = target.weekday;
+    document.getElementById('targetWeekend').value = target.weekend;
     document.getElementById('targetWeekly').value = target.weekly;
     document.getElementById('targetMonthly').value = target.monthly;
 
@@ -914,12 +955,18 @@ function loadTargetPage() {
     const monthExpenses = getExpenseByDateRange(monthRange.start, monthRange.end);
     const monthSummary = calculateSummary(monthIncomes, monthExpenses);
 
-    // Daily
-    const dailyPercent = target.daily > 0 ? Math.min(100, (todaySummary.netIncome / target.daily) * 100) : 0;
+    // Daily (based on weekday/weekend)
+    const dailyTarget = getDailyTarget(today);
+    const dailyPercent = dailyTarget > 0 ? Math.min(100, (todaySummary.netIncome / dailyTarget) * 100) : 0;
     document.getElementById('dailyPercent').textContent = `${Math.round(dailyPercent)}%`;
     document.getElementById('dailyCurrent').textContent = formatRupiah(todaySummary.netIncome);
-    document.getElementById('dailyGoal').textContent = formatRupiah(target.daily);
+    document.getElementById('dailyGoal').textContent = formatRupiah(dailyTarget);
     document.getElementById('dailyRing').style.background = `conic-gradient(var(--primary) ${dailyPercent}%, var(--border) ${dailyPercent}%)`;
+
+    // Show weekday/weekend label
+    const dayLabel = isWeekend(today) ? 'Hari Ini (Weekend)' : 'Hari Ini (Hari Kerja)';
+    const targetTodayLabel = document.querySelector('.target-card:first-child .target-label');
+    if (targetTodayLabel) targetTodayLabel.textContent = dayLabel;
     document.getElementById('targetTodayDate').textContent = formatDateShort(today);
 
     // Weekly
@@ -1103,16 +1150,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Target form
     document.getElementById('targetForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        const weekday = parseInt(document.getElementById('targetWeekday').value) || 0;
+        const weekend = parseInt(document.getElementById('targetWeekend').value) || 0;
+
         const target = {
-            daily: parseInt(document.getElementById('targetDaily').value) || 0,
-            weekly: parseInt(document.getElementById('targetWeekly').value) || 0,
-            monthly: parseInt(document.getElementById('targetMonthly').value) || 0
+            weekday: weekday,
+            weekend: weekend,
+            weekly: parseInt(document.getElementById('targetWeekly').value) || (weekday * 5 + weekend * 2),
+            monthly: parseInt(document.getElementById('targetMonthly').value) || (weekday * 5 + weekend * 2) * 4
         };
         saveTarget(target);
         loadTargetPage();
         updateDashboard();
         showToast('Target berhasil disimpan');
     });
+
+    // Auto-calculate weekly target when weekday/weekend changes
+    document.getElementById('targetWeekday').addEventListener('input', autoCalculateTargets);
+    document.getElementById('targetWeekend').addEventListener('input', autoCalculateTargets);
 
     // Filters
     document.getElementById('incomeFilterMonth').addEventListener('change', loadIncomeList);
