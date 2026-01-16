@@ -380,41 +380,26 @@ body {
 }
 
 /* Mini Chart */
-.mini-chart-card h4 {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-dark);
-    margin-bottom: 12px;
-}
-
-.mini-chart-footer {
+.card-header-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px solid var(--text-dark);
+    margin-bottom: 16px;
 }
 
-.chart-info-left {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.chart-info-item {
-    font-size: 12px;
-    color: var(--text-gray);
-}
-
-.chart-info-item strong {
-    color: var(--text-dark);
-}
-
-.chart-pct {
-    font-size: 20px;
+.card-header-row h4,
+.mini-chart-card h4,
+.quick-stats-card h4 {
+    font-size: 14px;
     font-weight: 700;
-    color: var(--primary);
+    color: var(--text-dark);
+    margin: 0;
+}
+
+.header-pct {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
 }
 
 .mini-bars {
@@ -450,7 +435,7 @@ body {
 }
 
 .mini-bar-fill.target-bar {
-    background: #94A3B8;
+    background: #64748B;
 }
 
 .mini-bar-fill.achieved-bar {
@@ -492,9 +477,9 @@ body {
 /* Quick Stats */
 .quick-stats-card h4 {
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--text-dark);
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 .quick-stat-list {
