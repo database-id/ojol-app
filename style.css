@@ -155,104 +155,39 @@ body {
     font-size: 14px;
 }
 
-/* ==================== DATE NAVIGATOR ==================== */
-.date-navigator {
+/* ==================== DASHBOARD HEADER ==================== */
+.dashboard-header {
+    margin-bottom: 24px;
+}
+
+.header-top {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    margin-top: 12px;
+    margin-bottom: 16px;
 }
 
-.nav-date-btn {
-    width: 36px;
-    height: 36px;
-    border: 2px solid var(--border);
-    background: var(--bg-white);
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    color: var(--text-gray);
-    transition: all 0.2s;
-}
-
-.nav-date-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    background: var(--primary-light);
-}
-
-.date-picker-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.date-picker-wrapper input[type="date"] {
-    position: absolute;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-}
-
-.date-display {
-    background: var(--bg-white);
-    padding: 10px 20px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    font-weight: 600;
+.header-top h2 {
+    font-size: 24px;
+    font-weight: 700;
     color: var(--text-dark);
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
 }
 
-.date-display:hover {
-    border-color: var(--primary);
-    background: var(--primary-light);
-}
-
-.date-display .calendar-icon {
-    font-size: 18px;
-}
-
-.date-display .date-text {
-    flex: 1;
-}
-
-.date-display .dropdown-icon {
-    font-size: 10px;
-    color: var(--text-gray);
-}
-
-.btn-today {
-    padding: 10px 16px;
-    font-size: 13px;
-}
-
-/* ==================== PERIOD TABS ==================== */
 .period-tabs {
     display: flex;
-    gap: 8px;
-    margin-top: 16px;
+    gap: 4px;
     background: var(--bg);
     padding: 4px;
     border-radius: 10px;
-    width: fit-content;
 }
 
 .period-tab {
-    padding: 10px 20px;
+    padding: 8px 16px;
     border: none;
     background: transparent;
     border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
     color: var(--text-gray);
     cursor: pointer;
     transition: all 0.2s;
@@ -265,6 +200,378 @@ body {
 .period-tab.active {
     background: var(--primary);
     color: white;
+}
+
+/* Date Navigator */
+.date-navigator,
+.month-navigator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--border);
+    background: var(--bg-white);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--text-gray);
+    transition: all 0.2s;
+}
+
+.nav-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.date-picker-wrapper {
+    position: relative;
+}
+
+.date-picker-wrapper input[type="date"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.date-display,
+.month-display {
+    padding: 8px 16px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-dark);
+    cursor: pointer;
+}
+
+.date-display:hover {
+    border-color: var(--primary);
+}
+
+.btn-today {
+    padding: 8px 12px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-today:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* ==================== SUMMARY GRID ==================== */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    padding: 16px;
+    box-shadow: var(--shadow);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.card-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    object-fit: contain;
+}
+
+.card-icon-text {
+    font-size: 20px;
+}
+
+.card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-gray);
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.card-amount {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.card-amount.gojek { color: var(--gojek); }
+.card-amount.grab { color: var(--grab); }
+.card-amount.total { color: var(--primary); }
+.card-amount.expense { color: var(--danger); }
+
+.card-detail {
+    font-size: 12px;
+    color: var(--text-gray);
+}
+
+.card-detail.net strong {
+    color: var(--success);
+}
+
+/* ==================== CHART SECTION ==================== */
+.chart-section {
+    margin-bottom: 24px;
+}
+
+.chart-container {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.chart-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.chart-header a {
+    font-size: 13px;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.chart-progress {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.progress-info {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.progress-current {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.progress-divider {
+    color: var(--text-light);
+}
+
+.progress-target {
+    font-size: 16px;
+    color: var(--text-gray);
+}
+
+.progress-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 10px;
+    background: var(--bg);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), #60A5FA);
+    border-radius: 5px;
+    transition: width 0.5s;
+}
+
+.progress-pct {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-dark);
+    min-width: 40px;
+}
+
+/* Bar Chart */
+.chart-visual {
+    padding-top: 10px;
+}
+
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 30px;
+    height: 140px;
+    position: relative;
+    padding-bottom: 24px;
+}
+
+.bar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 60px;
+}
+
+.bar-fill {
+    width: 100%;
+    min-height: 4px;
+    border-radius: 6px 6px 0 0;
+    transition: height 0.5s;
+}
+
+.bar-fill.gojek { background: var(--gojek); }
+.bar-fill.grab { background: var(--grab); }
+.bar-fill.total { background: var(--primary); }
+
+.bar-value {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-top: 6px;
+}
+
+.bar-label {
+    font-size: 11px;
+    color: var(--text-gray);
+    margin-top: 2px;
+}
+
+.target-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--danger);
+    border-top: 2px dashed var(--danger);
+}
+
+.target-line-text {
+    position: absolute;
+    right: 0;
+    top: -18px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--danger);
+    background: var(--bg-white);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* ==================== TABLE SECTION ==================== */
+.table-section {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.table-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.table-subtitle {
+    font-size: 13px;
+    color: var(--text-gray);
+}
+
+.data-table-container {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.data-table th,
+.data-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+    background: var(--bg);
+    font-weight: 600;
+    color: var(--text-gray);
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.data-table tbody tr:hover {
+    background: var(--bg);
+}
+
+.data-table .empty-cell {
+    text-align: center;
+    color: var(--text-gray);
+    padding: 40px;
+}
+
+.data-table .platform-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.data-table .platform-logo {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+.data-table .amount-positive {
+    color: var(--success);
+    font-weight: 600;
+}
+
+.data-table .amount-negative {
+    color: var(--danger);
+    font-weight: 600;
 }
 
 /* ==================== BUTTONS ==================== */
@@ -1507,28 +1814,12 @@ body {
 
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 1024px) {
-    .today-summary {
+    .summary-grid {
         grid-template-columns: repeat(2, 1fr);
-    }
-
-    .weekly-stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .monthly-stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .rekap-summary {
-        grid-template-columns: 1fr;
     }
 
     .target-settings {
         grid-template-columns: 1fr;
-    }
-
-    .platform-breakdown {
-        flex-direction: column;
     }
 }
 
@@ -1542,38 +1833,10 @@ body {
         padding: 16px;
     }
 
-    .today-summary {
-        grid-template-columns: 1fr;
-    }
-
-    .weekly-stats {
-        grid-template-columns: 1fr;
-    }
-
-    .monthly-stats {
-        grid-template-columns: 1fr;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-
-    .target-progress-card {
+    .header-top {
         flex-direction: column;
         align-items: flex-start;
-    }
-
-    .progress-bar-container {
-        width: 100%;
-    }
-
-    .breakdown-row {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-
-    .date-navigator {
-        flex-wrap: wrap;
+        gap: 12px;
     }
 
     .period-tabs {
@@ -1583,10 +1846,68 @@ body {
     .period-tab {
         flex: 1;
         text-align: center;
+        padding: 8px 10px;
+        font-size: 12px;
     }
 
-    .month-nav {
+    .summary-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .summary-card {
+        padding: 12px;
+    }
+
+    .card-amount {
+        font-size: 16px;
+    }
+
+    .date-navigator,
+    .month-navigator {
         flex-wrap: wrap;
-        justify-content: center;
+        gap: 6px;
+    }
+
+    .date-display,
+    .month-display {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+
+    .bar-chart {
+        gap: 20px;
+        height: 120px;
+    }
+
+    .bar-item {
+        width: 50px;
+    }
+
+    .data-table {
+        font-size: 12px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 8px 6px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .target-settings {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card-amount {
+        font-size: 18px;
     }
 }

@@ -40,226 +40,145 @@
         <main class="main-content">
             <!-- DASHBOARD -->
             <section id="dashboardSection" class="content-section">
-                <div class="page-header">
-                    <h2>Dashboard</h2>
-                    <div class="date-navigator">
-                        <button class="nav-date-btn" onclick="navigateDate(-1)">◀</button>
+                <!-- Header with Period Tabs -->
+                <div class="dashboard-header">
+                    <div class="header-top">
+                        <h2>Dashboard</h2>
+                        <div class="period-tabs">
+                            <button class="period-tab active" data-view="daily" onclick="switchDashboardView('daily')">Harian</button>
+                            <button class="period-tab" data-view="weekly" onclick="switchDashboardView('weekly')">Mingguan</button>
+                            <button class="period-tab" data-view="monthly" onclick="switchDashboardView('monthly')">Bulanan</button>
+                        </div>
+                    </div>
+                    <div class="date-navigator" id="dateNavigator">
+                        <button class="nav-btn" onclick="navigateDate(-1)">‹</button>
                         <div class="date-picker-wrapper" onclick="openDatePicker()">
                             <input type="date" id="dashboardDate" onchange="loadDashboardByDate()">
-                            <span class="date-display" id="currentDate">
-                                <span class="calendar-icon">📅</span>
-                                <span class="date-text">Senin, 16 Januari 2026</span>
-                                <span class="dropdown-icon">▼</span>
-                            </span>
+                            <span class="date-display" id="currentDate">Kamis, 16 Januari 2026</span>
                         </div>
-                        <button class="nav-date-btn" onclick="navigateDate(1)">▶</button>
-                        <button class="btn btn-outline btn-today" onclick="goToToday()">Hari Ini</button>
+                        <button class="nav-btn" onclick="navigateDate(1)">›</button>
+                        <button class="btn-today" onclick="goToToday()">Hari Ini</button>
                     </div>
-                    <!-- Period View Tabs -->
-                    <div class="period-tabs">
-                        <button class="period-tab active" data-view="daily" onclick="switchDashboardView('daily')">Harian</button>
-                        <button class="period-tab" data-view="weekly" onclick="switchDashboardView('weekly')">Mingguan</button>
-                        <button class="period-tab" data-view="monthly" onclick="switchDashboardView('monthly')">Bulanan</button>
+                    <div class="month-navigator" id="monthNavigator" style="display: none;">
+                        <button class="nav-btn" onclick="navigateMonth(-1)">‹</button>
+                        <span class="month-display" id="monthLabel">Januari 2026</span>
+                        <button class="nav-btn" onclick="navigateMonth(1)">›</button>
                     </div>
                 </div>
 
-                <!-- Day Summary -->
-                <div class="today-summary">
-                    <div class="summary-card gojek">
-                        <div class="card-icon">
-                            <img src="gojek-logo.png" alt="Gojek" class="platform-logo-img">
+                <!-- Summary Cards (same for all views) -->
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="card-header">
+                            <img src="gojek-logo.png" alt="Gojek" class="card-logo">
+                            <span class="card-title">Gojek</span>
                         </div>
-                        <div class="card-content">
-                            <span class="card-label" id="gojekLabel">Gojek Hari Ini</span>
-                            <span class="card-value" id="todayGojek">Rp 0</span>
-                            <span class="card-orders" id="todayGojekOrders">0 order</span>
-                        </div>
-                    </div>
-                    <div class="summary-card grab">
-                        <div class="card-icon">
-                            <img src="grab-logo.png" alt="Grab" class="platform-logo-img">
-                        </div>
-                        <div class="card-content">
-                            <span class="card-label" id="grabLabel">Grab Hari Ini</span>
-                            <span class="card-value" id="todayGrab">Rp 0</span>
-                            <span class="card-orders" id="todayGrabOrders">0 order</span>
+                        <div class="card-body">
+                            <span class="card-amount gojek" id="summaryGojek">Rp 0</span>
+                            <span class="card-detail" id="summaryGojekOrders">0 order</span>
                         </div>
                     </div>
-                    <div class="summary-card total">
-                        <div class="card-icon">
-                            <span>💵</span>
+                    <div class="summary-card">
+                        <div class="card-header">
+                            <img src="grab-logo.png" alt="Grab" class="card-logo">
+                            <span class="card-title">Grab</span>
                         </div>
-                        <div class="card-content">
-                            <span class="card-label" id="totalLabel">Total Hari Ini</span>
-                            <span class="card-value" id="todayTotal">Rp 0</span>
-                            <span class="card-orders" id="todayTotalOrders">0 order</span>
+                        <div class="card-body">
+                            <span class="card-amount grab" id="summaryGrab">Rp 0</span>
+                            <span class="card-detail" id="summaryGrabOrders">0 order</span>
                         </div>
                     </div>
-                    <div class="summary-card expense">
-                        <div class="card-icon">
-                            <span>💸</span>
+                    <div class="summary-card">
+                        <div class="card-header">
+                            <span class="card-icon-text">💰</span>
+                            <span class="card-title">Total</span>
                         </div>
-                        <div class="card-content">
-                            <span class="card-label">Pengeluaran</span>
-                            <span class="card-value" id="todayExpense">Rp 0</span>
-                            <span class="card-orders net-label">Bersih: <strong id="todayNet">Rp 0</strong></span>
+                        <div class="card-body">
+                            <span class="card-amount total" id="summaryTotal">Rp 0</span>
+                            <span class="card-detail" id="summaryTotalOrders">0 order</span>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="card-header">
+                            <span class="card-icon-text">💸</span>
+                            <span class="card-title">Pengeluaran</span>
+                        </div>
+                        <div class="card-body">
+                            <span class="card-amount expense" id="summaryExpense">Rp 0</span>
+                            <span class="card-detail net">Bersih: <strong id="summaryNet">Rp 0</strong></span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Target Progress -->
-                <div class="target-section">
-                    <div class="section-header">
-                        <h3>Target Harian</h3>
-                        <a href="#" onclick="switchPage('target'); return false;">Ubah Target</a>
-                    </div>
-                    <div class="target-progress-card">
-                        <div class="target-info">
-                            <span class="target-current" id="targetCurrent">Rp 0</span>
-                            <span class="target-separator">dari</span>
-                            <span class="target-goal" id="targetGoal">Rp 0</span>
+                <!-- Target & Chart Section -->
+                <div class="chart-section">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3 id="chartTitle">Target Harian</h3>
+                            <a href="#" onclick="switchPage('target'); return false;">Ubah Target</a>
                         </div>
-                        <div class="progress-bar-container">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="targetProgress"></div>
+                        <div class="chart-progress">
+                            <div class="progress-info">
+                                <span class="progress-current" id="targetCurrent">Rp 0</span>
+                                <span class="progress-divider">/</span>
+                                <span class="progress-target" id="targetGoal">Rp 0</span>
                             </div>
-                            <span class="progress-percent" id="targetPercent">0%</span>
-                        </div>
-                    </div>
-                    <!-- Visual Chart -->
-                    <div class="income-chart">
-                        <div class="chart-bars">
-                            <div class="chart-bar-group">
-                                <div class="chart-bar gojek" id="chartBarGojek">
-                                    <span class="chart-bar-value" id="chartGojekValue">Rp 0</span>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="targetProgress"></div>
                                 </div>
-                                <span class="chart-bar-label">Gojek</span>
+                                <span class="progress-pct" id="targetPercent">0%</span>
                             </div>
-                            <div class="chart-bar-group">
-                                <div class="chart-bar grab" id="chartBarGrab">
-                                    <span class="chart-bar-value" id="chartGrabValue">Rp 0</span>
+                        </div>
+                        <div class="chart-visual">
+                            <div class="bar-chart">
+                                <div class="bar-item">
+                                    <div class="bar-fill gojek" id="chartBarGojek"></div>
+                                    <span class="bar-value" id="chartGojekValue">0</span>
+                                    <span class="bar-label">Gojek</span>
                                 </div>
-                                <span class="chart-bar-label">Grab</span>
-                            </div>
-                            <div class="chart-bar-group">
-                                <div class="chart-bar total" id="chartBarTotal">
-                                    <span class="chart-bar-value" id="chartTotalValue">Rp 0</span>
+                                <div class="bar-item">
+                                    <div class="bar-fill grab" id="chartBarGrab"></div>
+                                    <span class="bar-value" id="chartGrabValue">0</span>
+                                    <span class="bar-label">Grab</span>
                                 </div>
-                                <span class="chart-bar-label">Total</span>
+                                <div class="bar-item">
+                                    <div class="bar-fill total" id="chartBarTotal"></div>
+                                    <span class="bar-value" id="chartTotalValue">0</span>
+                                    <span class="bar-label">Total</span>
+                                </div>
+                                <div class="target-line" id="chartTargetLine">
+                                    <span class="target-line-text" id="chartTargetLabel">Target</span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="chart-target-line" id="chartTargetLine">
-                            <span class="target-line-label">Target: <span id="chartTargetValue">Rp 0</span></span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Weekly Overview -->
-                <div class="weekly-section" id="weeklyOverviewSection">
-                    <div class="section-header">
-                        <h3 id="weeklyHeader">Minggu Ini</h3>
-                        <span class="week-range" id="weekRangeLabel"></span>
+                <!-- Data Table Section -->
+                <div class="table-section">
+                    <div class="table-header">
+                        <h3 id="tableTitle">Aktivitas Hari Ini</h3>
+                        <span class="table-subtitle" id="tableSubtitle"></span>
                     </div>
-                    <div class="weekly-stats">
-                        <div class="week-stat">
-                            <span class="stat-label">Total Pendapatan</span>
-                            <span class="stat-value" id="weeklyIncome">Rp 0</span>
-                        </div>
-                        <div class="week-stat">
-                            <span class="stat-label">Total Order</span>
-                            <span class="stat-value" id="weeklyOrders">0</span>
-                        </div>
-                        <div class="week-stat">
-                            <span class="stat-label">Pengeluaran</span>
-                            <span class="stat-value expense" id="weeklyExpense">Rp 0</span>
-                        </div>
-                        <div class="week-stat">
-                            <span class="stat-label">Pendapatan Bersih</span>
-                            <span class="stat-value net" id="weeklyNet">Rp 0</span>
-                        </div>
-                    </div>
-                    <!-- Weekly Platform Breakdown -->
-                    <div class="platform-breakdown" id="weeklyPlatformBreakdown">
-                        <div class="platform-stat gojek">
-                            <img src="gojek-logo.png" alt="Gojek" class="platform-stat-logo">
-                            <div class="platform-stat-info">
-                                <span class="platform-stat-value" id="weeklyGojek">Rp 0</span>
-                                <span class="platform-stat-orders" id="weeklyGojekOrders">0 order</span>
-                            </div>
-                        </div>
-                        <div class="platform-stat grab">
-                            <img src="grab-logo.png" alt="Grab" class="platform-stat-logo">
-                            <div class="platform-stat-info">
-                                <span class="platform-stat-value" id="weeklyGrab">Rp 0</span>
-                                <span class="platform-stat-orders" id="weeklyGrabOrders">0 order</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Weekly Daily Breakdown -->
-                    <div class="daily-breakdown" id="weeklyDailyBreakdown"></div>
-                </div>
-
-                <!-- Monthly Overview -->
-                <div class="monthly-section" id="monthlyOverviewSection" style="display: none;">
-                    <div class="section-header">
-                        <h3 id="monthlyHeader">Bulan Ini</h3>
-                        <div class="month-nav">
-                            <button class="nav-date-btn" onclick="navigateMonth(-1)">◀</button>
-                            <span id="monthLabel">Januari 2026</span>
-                            <button class="nav-date-btn" onclick="navigateMonth(1)">▶</button>
-                        </div>
-                    </div>
-                    <div class="monthly-stats">
-                        <div class="month-stat">
-                            <span class="stat-label">Total Pendapatan</span>
-                            <span class="stat-value" id="monthlyIncome">Rp 0</span>
-                        </div>
-                        <div class="month-stat">
-                            <span class="stat-label">Total Order</span>
-                            <span class="stat-value" id="monthlyOrders">0</span>
-                        </div>
-                        <div class="month-stat">
-                            <span class="stat-label">Pengeluaran</span>
-                            <span class="stat-value expense" id="monthlyExpense">Rp 0</span>
-                        </div>
-                        <div class="month-stat">
-                            <span class="stat-label">Pendapatan Bersih</span>
-                            <span class="stat-value net" id="monthlyNet">Rp 0</span>
-                        </div>
-                    </div>
-                    <!-- Monthly Platform Breakdown -->
-                    <div class="platform-breakdown">
-                        <div class="platform-stat gojek">
-                            <img src="gojek-logo.png" alt="Gojek" class="platform-stat-logo">
-                            <div class="platform-stat-info">
-                                <span class="platform-stat-value" id="monthlyGojek">Rp 0</span>
-                                <span class="platform-stat-orders" id="monthlyGojekOrders">0 order</span>
-                            </div>
-                        </div>
-                        <div class="platform-stat grab">
-                            <img src="grab-logo.png" alt="Grab" class="platform-stat-logo">
-                            <div class="platform-stat-info">
-                                <span class="platform-stat-value" id="monthlyGrab">Rp 0</span>
-                                <span class="platform-stat-orders" id="monthlyGrabOrders">0 order</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Monthly Weekly Breakdown -->
-                    <div class="weekly-breakdown" id="monthlyWeeklyBreakdown"></div>
-                </div>
-
-                <!-- Recent Activity -->
-                <div class="recent-section">
-                    <div class="section-header">
-                        <h3 id="activityHeader">Aktivitas Hari Ini</h3>
-                        <a href="#" onclick="switchPage('pendapatan'); return false;">Lihat Semua</a>
-                    </div>
-                    <div class="recent-list" id="recentList">
-                        <div class="empty-state">
-                            <span class="empty-icon">📝</span>
-                            <p>Belum ada data</p>
-                            <button class="btn btn-primary" onclick="switchPage('pendapatan')">Tambah Pendapatan</button>
-                        </div>
+                    <div class="data-table-container">
+                        <table class="data-table" id="activityTable">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Platform</th>
+                                    <th>Pendapatan</th>
+                                    <th>Order</th>
+                                    <th>Pengeluaran</th>
+                                    <th>Bersih</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activityTableBody">
+                                <tr>
+                                    <td colspan="6" class="empty-cell">Belum ada data</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>

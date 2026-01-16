@@ -281,39 +281,19 @@ function switchDashboardView(view) {
         }
     });
 
-    // Show/hide sections based on view
-    const dailySections = ['.today-summary', '.target-section'];
-    const weeklySection = document.getElementById('weeklyOverviewSection');
-    const monthlySection = document.getElementById('monthlyOverviewSection');
-    const recentSection = document.querySelector('.recent-section');
+    // Show/hide navigators
+    const dateNav = document.getElementById('dateNavigator');
+    const monthNav = document.getElementById('monthNavigator');
 
     if (view === 'daily') {
-        dailySections.forEach(sel => {
-            const el = document.querySelector(sel);
-            if (el) el.style.display = '';
-        });
-        weeklySection.style.display = '';
-        monthlySection.style.display = 'none';
-        recentSection.style.display = '';
-        document.querySelector('.date-navigator').style.display = 'flex';
+        dateNav.style.display = 'flex';
+        monthNav.style.display = 'none';
     } else if (view === 'weekly') {
-        dailySections.forEach(sel => {
-            const el = document.querySelector(sel);
-            if (el) el.style.display = 'none';
-        });
-        weeklySection.style.display = '';
-        monthlySection.style.display = 'none';
-        recentSection.style.display = 'none';
-        document.querySelector('.date-navigator').style.display = 'none';
+        dateNav.style.display = 'flex';
+        monthNav.style.display = 'none';
     } else if (view === 'monthly') {
-        dailySections.forEach(sel => {
-            const el = document.querySelector(sel);
-            if (el) el.style.display = 'none';
-        });
-        weeklySection.style.display = 'none';
-        monthlySection.style.display = '';
-        recentSection.style.display = 'none';
-        document.querySelector('.date-navigator').style.display = 'none';
+        dateNav.style.display = 'none';
+        monthNav.style.display = 'flex';
     }
 
     updateDashboard();
@@ -335,57 +315,71 @@ function navigateMonth(offset) {
 function updateDashboard() {
     // Initialize date picker
     document.getElementById('dashboardDate').value = selectedDate;
-    const dateTextEl = document.querySelector('#currentDate .date-text');
-    if (dateTextEl) {
-        dateTextEl.textContent = formatDate(selectedDate);
+    document.getElementById('currentDate').textContent = formatDate(selectedDate);
+
+    let summary, target, targetLabel, tableTitle, tableSubtitle;
+
+    if (currentDashboardView === 'daily') {
+        // Daily view
+        const dayIncomes = getIncomeByDate(selectedDate);
+        const dayExpenses = getExpenseByDate(selectedDate);
+        summary = calculateSummary(dayIncomes, dayExpenses);
+        target = getDailyTarget(selectedDate);
+        targetLabel = isWeekend(selectedDate) ? 'Target Weekend' : 'Target Hari Kerja';
+        tableTitle = 'Aktivitas Hari Ini';
+        tableSubtitle = formatDate(selectedDate);
+        loadDailyTable(selectedDate);
+    } else if (currentDashboardView === 'weekly') {
+        // Weekly view
+        const weekRange = getWeekRangeFromDate(selectedDate);
+        const weekIncomes = getIncomeByDateRange(weekRange.start, weekRange.end);
+        const weekExpenses = getExpenseByDateRange(weekRange.start, weekRange.end);
+        summary = calculateSummary(weekIncomes, weekExpenses);
+        target = getTarget().weekly;
+        targetLabel = 'Target Mingguan';
+        tableTitle = 'Aktivitas Minggu Ini';
+        tableSubtitle = `${formatDateShort(weekRange.start)} - ${formatDateShort(weekRange.end)}`;
+        loadWeeklyTable(weekRange);
+    } else if (currentDashboardView === 'monthly') {
+        // Monthly view
+        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        document.getElementById('monthLabel').textContent = `${monthNames[selectedMonth - 1]} ${selectedYear}`;
+
+        const monthRange = getMonthRange(selectedYear, selectedMonth);
+        const monthIncomes = getIncomeByDateRange(monthRange.start, monthRange.end);
+        const monthExpenses = getExpenseByDateRange(monthRange.start, monthRange.end);
+        summary = calculateSummary(monthIncomes, monthExpenses);
+        target = getTarget().monthly;
+        targetLabel = 'Target Bulanan';
+        tableTitle = 'Aktivitas Bulan Ini';
+        tableSubtitle = `${monthNames[selectedMonth - 1]} ${selectedYear}`;
+        loadMonthlyTable(monthRange);
     }
 
-    // Update labels based on whether it's today or not
-    const isToday = selectedDate === getToday();
-    const labelSuffix = isToday ? 'Hari Ini' : formatDateShort(selectedDate);
+    // Update summary cards
+    document.getElementById('summaryGojek').textContent = formatRupiah(summary.gojek.total);
+    document.getElementById('summaryGojekOrders').textContent = `${summary.gojek.orders} order`;
+    document.getElementById('summaryGrab').textContent = formatRupiah(summary.grab.total);
+    document.getElementById('summaryGrabOrders').textContent = `${summary.grab.orders} order`;
+    document.getElementById('summaryTotal').textContent = formatRupiah(summary.totalIncome);
+    document.getElementById('summaryTotalOrders').textContent = `${summary.totalOrders} order`;
+    document.getElementById('summaryExpense').textContent = formatRupiah(summary.totalExpense);
+    document.getElementById('summaryNet').textContent = formatRupiah(summary.netIncome);
 
-    document.getElementById('gojekLabel').textContent = `Gojek ${labelSuffix}`;
-    document.getElementById('grabLabel').textContent = `Grab ${labelSuffix}`;
-    document.getElementById('totalLabel').textContent = `Total ${labelSuffix}`;
-
-    // Selected date's data
-    const dayIncomes = getIncomeByDate(selectedDate);
-    const dayExpenses = getExpenseByDate(selectedDate);
-    const daySummary = calculateSummary(dayIncomes, dayExpenses);
-
-    document.getElementById('todayGojek').textContent = formatRupiah(daySummary.gojek.total);
-    document.getElementById('todayGojekOrders').textContent = `${daySummary.gojek.orders} order`;
-    document.getElementById('todayGrab').textContent = formatRupiah(daySummary.grab.total);
-    document.getElementById('todayGrabOrders').textContent = `${daySummary.grab.orders} order`;
-    document.getElementById('todayTotal').textContent = formatRupiah(daySummary.totalIncome);
-    document.getElementById('todayTotalOrders').textContent = `${daySummary.totalOrders} order`;
-    document.getElementById('todayExpense').textContent = formatRupiah(daySummary.totalExpense);
-    document.getElementById('todayNet').textContent = formatRupiah(daySummary.netIncome);
-
-    // Target progress (based on weekday/weekend)
-    const dailyTarget = getDailyTarget(selectedDate);
-    const targetPercent = dailyTarget > 0 ? Math.min(100, (daySummary.netIncome / dailyTarget) * 100) : 0;
-    document.getElementById('targetCurrent').textContent = formatRupiah(daySummary.netIncome);
-    document.getElementById('targetGoal').textContent = formatRupiah(dailyTarget);
+    // Update target progress
+    const targetPercent = target > 0 ? Math.min(100, (summary.netIncome / target) * 100) : 0;
+    document.getElementById('chartTitle').textContent = targetLabel;
+    document.getElementById('targetCurrent').textContent = formatRupiah(summary.netIncome);
+    document.getElementById('targetGoal').textContent = formatRupiah(target);
     document.getElementById('targetProgress').style.width = `${targetPercent}%`;
     document.getElementById('targetPercent').textContent = `${Math.round(targetPercent)}%`;
 
-    // Show weekend/weekday indicator
-    const targetLabel = isWeekend(selectedDate) ? 'Target Weekend' : 'Target Hari Kerja';
-    const targetHeader = document.querySelector('.target-section .section-header h3');
-    if (targetHeader) targetHeader.textContent = targetLabel;
+    // Update chart
+    updateIncomeChart(summary, target);
 
-    // Update visual chart
-    updateIncomeChart(daySummary, dailyTarget);
-
-    // Weekly data (from selected date's week)
-    updateWeeklySection();
-
-    // Monthly data
-    updateMonthlySection();
-
-    // Recent activity for selected date
-    loadRecentActivity();
+    // Update table header
+    document.getElementById('tableTitle').textContent = tableTitle;
+    document.getElementById('tableSubtitle').textContent = tableSubtitle;
 }
 
 // Update visual income chart
@@ -422,14 +416,159 @@ function updateIncomeChart(summary, target) {
 // Format rupiah in short form (K for thousands)
 function formatRupiahShort(num) {
     if (num >= 1000000) {
-        return 'Rp ' + (num / 1000000).toFixed(1) + 'jt';
+        return (num / 1000000).toFixed(1) + 'jt';
     } else if (num >= 1000) {
-        return 'Rp ' + (num / 1000).toFixed(0) + 'rb';
+        return (num / 1000).toFixed(0) + 'rb';
     }
-    return 'Rp ' + num;
+    return num.toString();
 }
 
-// Update weekly section with data
+// Load daily activity table
+function loadDailyTable(dateStr) {
+    const incomes = getIncomeByDate(dateStr);
+    const expenses = getExpenseByDate(dateStr);
+    const tbody = document.getElementById('activityTableBody');
+
+    if (incomes.length === 0 && expenses.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">Belum ada aktivitas hari ini</td></tr>';
+        return;
+    }
+
+    // Combine and sort by time
+    const gojekSummary = incomes.filter(i => i.platform === 'gojek').reduce((acc, i) => {
+        acc.total += i.amount;
+        acc.orders++;
+        return acc;
+    }, { total: 0, orders: 0 });
+
+    const grabSummary = incomes.filter(i => i.platform === 'grab').reduce((acc, i) => {
+        acc.total += i.amount;
+        acc.orders++;
+        return acc;
+    }, { total: 0, orders: 0 });
+
+    const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+    let html = '';
+    if (gojekSummary.orders > 0) {
+        html += `
+            <tr>
+                <td>${formatDateShort(dateStr)}</td>
+                <td><div class="platform-cell"><img src="gojek-logo.png" class="platform-logo"> Gojek</div></td>
+                <td>${formatRupiah(gojekSummary.total)}</td>
+                <td>${gojekSummary.orders}</td>
+                <td>-</td>
+                <td class="amount-positive">${formatRupiah(gojekSummary.total)}</td>
+            </tr>
+        `;
+    }
+    if (grabSummary.orders > 0) {
+        html += `
+            <tr>
+                <td>${formatDateShort(dateStr)}</td>
+                <td><div class="platform-cell"><img src="grab-logo.png" class="platform-logo"> Grab</div></td>
+                <td>${formatRupiah(grabSummary.total)}</td>
+                <td>${grabSummary.orders}</td>
+                <td>-</td>
+                <td class="amount-positive">${formatRupiah(grabSummary.total)}</td>
+            </tr>
+        `;
+    }
+    if (totalExpense > 0) {
+        html += `
+            <tr>
+                <td>${formatDateShort(dateStr)}</td>
+                <td>💸 Pengeluaran</td>
+                <td>-</td>
+                <td>-</td>
+                <td class="amount-negative">-${formatRupiah(totalExpense)}</td>
+                <td class="amount-negative">-${formatRupiah(totalExpense)}</td>
+            </tr>
+        `;
+    }
+
+    tbody.innerHTML = html || '<tr><td colspan="6" class="empty-cell">Belum ada aktivitas</td></tr>';
+}
+
+// Load weekly activity table
+function loadWeeklyTable(weekRange) {
+    const tbody = document.getElementById('activityTableBody');
+    const startDate = new Date(weekRange.start);
+    const endDate = new Date(weekRange.end);
+    const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+    let html = '';
+    const currentDate = new Date(startDate);
+
+    while (currentDate <= endDate) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const dayIncomes = getIncomeByDate(dateStr);
+        const dayExpenses = getExpenseByDate(dateStr);
+        const daySummary = calculateSummary(dayIncomes, dayExpenses);
+
+        const dayName = days[currentDate.getDay()];
+
+        html += `
+            <tr>
+                <td>${formatDateShort(dateStr)} (${dayName})</td>
+                <td>-</td>
+                <td>${formatRupiah(daySummary.totalIncome)}</td>
+                <td>${daySummary.totalOrders}</td>
+                <td class="amount-negative">${daySummary.totalExpense > 0 ? '-' + formatRupiah(daySummary.totalExpense) : '-'}</td>
+                <td class="${daySummary.netIncome >= 0 ? 'amount-positive' : 'amount-negative'}">${formatRupiah(daySummary.netIncome)}</td>
+            </tr>
+        `;
+
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    tbody.innerHTML = html || '<tr><td colspan="6" class="empty-cell">Belum ada aktivitas</td></tr>';
+}
+
+// Load monthly activity table
+function loadMonthlyTable(monthRange) {
+    const tbody = document.getElementById('activityTableBody');
+    const startDate = new Date(monthRange.start);
+    const endDate = new Date(monthRange.end);
+
+    let html = '';
+    let weekNum = 1;
+    let currentWeekStart = new Date(startDate);
+    currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
+
+    while (currentWeekStart <= endDate) {
+        const weekEnd = new Date(currentWeekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+
+        const effectiveStart = new Date(Math.max(currentWeekStart.getTime(), startDate.getTime()));
+        const effectiveEnd = new Date(Math.min(weekEnd.getTime(), endDate.getTime()));
+
+        const weekStartStr = effectiveStart.toISOString().split('T')[0];
+        const weekEndStr = effectiveEnd.toISOString().split('T')[0];
+
+        const weekIncomes = getIncomeByDateRange(weekStartStr, weekEndStr);
+        const weekExpenses = getExpenseByDateRange(weekStartStr, weekEndStr);
+        const weekSummary = calculateSummary(weekIncomes, weekExpenses);
+
+        html += `
+            <tr>
+                <td>Minggu ${weekNum}</td>
+                <td>${formatDateShort(weekStartStr)} - ${formatDateShort(weekEndStr)}</td>
+                <td>${formatRupiah(weekSummary.totalIncome)}</td>
+                <td>${weekSummary.totalOrders}</td>
+                <td class="amount-negative">${weekSummary.totalExpense > 0 ? '-' + formatRupiah(weekSummary.totalExpense) : '-'}</td>
+                <td class="${weekSummary.netIncome >= 0 ? 'amount-positive' : 'amount-negative'}">${formatRupiah(weekSummary.netIncome)}</td>
+            </tr>
+        `;
+
+        currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+        weekNum++;
+    }
+
+    tbody.innerHTML = html || '<tr><td colspan="6" class="empty-cell">Belum ada aktivitas</td></tr>';
+}
+
+// Update weekly section with data (keep for compatibility)
 function updateWeeklySection() {
     const weekRange = getWeekRangeFromDate(selectedDate);
     const weekIncomes = getIncomeByDateRange(weekRange.start, weekRange.end);
