@@ -356,29 +356,31 @@ function updateDashboard() {
     updateIncomeChart(summary, target);
 }
 
-// Update mini chart and quick stats
+// Update progress ring
 function updateIncomeChart(summary, target) {
     const totalIncome = summary.totalIncome;
 
-    // Calculate bar widths - compare target vs achieved (using total income)
-    const maxValue = Math.max(target, totalIncome, 1);
-    const targetPct = (target / maxValue) * 100;
-    const achievedPct = (totalIncome / maxValue) * 100;
+    // Calculate percentage
+    const pct = target > 0 ? (totalIncome / target) * 100 : 0;
+    const displayPct = Math.round(pct);
+    const ringPct = Math.min(100, pct); // Cap at 100% for visual
 
-    // Update target bar
-    const targetBar = document.getElementById('chartBarTarget');
-    if (targetBar) targetBar.style.width = `${Math.min(100, targetPct)}%`;
+    // Update progress ring
+    const ring = document.getElementById('progressRing');
+    if (ring) {
+        ring.style.background = `conic-gradient(var(--gojek) ${ringPct}%, var(--border) ${ringPct}%)`;
+    }
 
-    // Update achieved bar
-    const achievedBar = document.getElementById('chartBarAchieved');
-    if (achievedBar) achievedBar.style.width = `${Math.min(100, achievedPct)}%`;
+    // Update percentage text
+    const pctEl = document.getElementById('progressPct');
+    if (pctEl) pctEl.textContent = `${displayPct}%`;
 
-    // Update bar values
-    const targetValue = document.getElementById('chartTargetValue');
-    if (targetValue) targetValue.textContent = formatRupiahShort(target);
+    // Update info values
+    const targetEl = document.getElementById('targetValue');
+    if (targetEl) targetEl.textContent = formatRupiah(target);
 
-    const achievedValue = document.getElementById('chartAchievedValue');
-    if (achievedValue) achievedValue.textContent = formatRupiahShort(totalIncome);
+    const achievedEl = document.getElementById('achievedValue');
+    if (achievedEl) achievedEl.textContent = formatRupiah(totalIncome);
 
     // Update ringkasan
     updateRingkasan(summary);

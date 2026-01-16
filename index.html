@@ -78,23 +78,24 @@
 
                 <!-- Target & Stats Section -->
                 <div class="stats-row">
-                    <!-- Mini Chart -->
+                    <!-- Progress Ring -->
                     <div class="mini-chart-card">
                         <h4>Pencapaian</h4>
-                        <div class="mini-bars">
-                            <div class="mini-bar-item">
-                                <span class="mini-bar-label">Target</span>
-                                <div class="mini-bar-track">
-                                    <div class="mini-bar-fill target-bar" id="chartBarTarget"></div>
+                        <div class="progress-ring-container">
+                            <div class="progress-ring" id="progressRing">
+                                <div class="progress-ring-inner">
+                                    <span class="progress-pct" id="progressPct">0%</span>
                                 </div>
-                                <span class="mini-bar-value" id="chartTargetValue">0</span>
                             </div>
-                            <div class="mini-bar-item">
-                                <span class="mini-bar-label">Tercapai</span>
-                                <div class="mini-bar-track">
-                                    <div class="mini-bar-fill achieved-bar" id="chartBarAchieved"></div>
+                            <div class="progress-info">
+                                <div class="progress-info-item">
+                                    <span class="info-label">Target</span>
+                                    <span class="info-value" id="targetValue">Rp 0</span>
                                 </div>
-                                <span class="mini-bar-value" id="chartAchievedValue">0</span>
+                                <div class="progress-info-item">
+                                    <span class="info-label">Tercapai</span>
+                                    <span class="info-value achieved" id="achievedValue">Rp 0</span>
+                                </div>
                             </div>
                         </div>
                     </div>
