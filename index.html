@@ -85,24 +85,11 @@
                             <span class="mini-pct" id="targetPercent">0%</span>
                         </div>
                         <div class="mini-bars">
-                            <div class="mini-bar-item">
-                                <span class="mini-bar-label">Gojek</span>
-                                <div class="mini-bar-track">
-                                    <div class="mini-bar-fill gojek" id="chartBarGojek"></div>
-                                </div>
-                                <span class="mini-bar-value" id="chartGojekValue">0</span>
-                            </div>
-                            <div class="mini-bar-item">
-                                <span class="mini-bar-label">Grab</span>
-                                <div class="mini-bar-track">
-                                    <div class="mini-bar-fill grab" id="chartBarGrab"></div>
-                                </div>
-                                <span class="mini-bar-value" id="chartGrabValue">0</span>
-                            </div>
                             <div class="mini-bar-item total">
                                 <span class="mini-bar-label">Total</span>
-                                <div class="mini-bar-track">
+                                <div class="mini-bar-track with-target">
                                     <div class="mini-bar-fill total" id="chartBarTotal"></div>
+                                    <div class="target-line" id="targetLine"></div>
                                 </div>
                                 <span class="mini-bar-value" id="chartTotalValue">0</span>
                             </div>
@@ -116,11 +103,11 @@
                     <div class="quick-stats-card">
                         <h4>Ringkasan</h4>
                         <div class="quick-stat-list">
-                            <div class="quick-stat-item">
+                            <div class="quick-stat-item clickable" onclick="switchPage('pendapatan')">
                                 <span class="qs-label">Pendapatan</span>
                                 <span class="qs-value income" id="statIncome">Rp 0</span>
                             </div>
-                            <div class="quick-stat-item">
+                            <div class="quick-stat-item clickable" onclick="switchPage('pengeluaran')">
                                 <span class="qs-label">Pengeluaran</span>
                                 <span class="qs-value expense" id="statExpense">Rp 0</span>
                             </div>

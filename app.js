@@ -365,25 +365,26 @@ function updateDashboard() {
 
 // Update mini chart and quick stats
 function updateIncomeChart(summary, target) {
-    const gojekIncome = summary.gojek.total;
-    const grabIncome = summary.grab.total;
     const totalIncome = summary.totalIncome;
 
-    // Calculate percentages for horizontal bars (based on target)
+    // Calculate bar width - show how much of target is achieved
     const maxValue = Math.max(target, totalIncome, 1);
-    const gojekPct = (gojekIncome / maxValue) * 100;
-    const grabPct = (grabIncome / maxValue) * 100;
     const totalPct = (totalIncome / maxValue) * 100;
+    const targetPct = (target / maxValue) * 100;
 
-    // Update bar widths
-    document.getElementById('chartBarGojek').style.width = `${Math.min(100, gojekPct)}%`;
-    document.getElementById('chartBarGrab').style.width = `${Math.min(100, grabPct)}%`;
-    document.getElementById('chartBarTotal').style.width = `${Math.min(100, totalPct)}%`;
+    // Update bar width
+    const barEl = document.getElementById('chartBarTotal');
+    if (barEl) barEl.style.width = `${Math.min(100, totalPct)}%`;
 
-    // Update bar values
-    document.getElementById('chartGojekValue').textContent = formatRupiahShort(gojekIncome);
-    document.getElementById('chartGrabValue').textContent = formatRupiahShort(grabIncome);
-    document.getElementById('chartTotalValue').textContent = formatRupiahShort(totalIncome);
+    // Update target line position
+    const targetLine = document.getElementById('targetLine');
+    if (targetLine) {
+        targetLine.style.left = `${Math.min(100, targetPct)}%`;
+    }
+
+    // Update bar value
+    const valueEl = document.getElementById('chartTotalValue');
+    if (valueEl) valueEl.textContent = formatRupiahShort(totalIncome);
 
     // Update ringkasan
     updateRingkasan(summary);

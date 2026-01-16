@@ -418,10 +418,25 @@ body {
 }
 
 .mini-bar-track {
-    height: 8px;
+    height: 10px;
     background: var(--bg);
-    border-radius: 4px;
-    overflow: hidden;
+    border-radius: 5px;
+    overflow: visible;
+    position: relative;
+}
+
+.mini-bar-track.with-target {
+    overflow: visible;
+}
+
+.target-line {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 3px;
+    background: var(--danger);
+    border-radius: 2px;
+    z-index: 2;
 }
 
 .mini-bar-fill {
@@ -487,35 +502,49 @@ body {
 }
 
 .qs-label {
-    font-size: 12px;
-    color: var(--text-gray);
+    font-size: 13px;
+    color: var(--text-dark);
 }
 
 .qs-value {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text-dark);
     white-space: nowrap;
 }
 
 .qs-value.income {
-    color: var(--gojek);
+    color: var(--text-dark);
 }
 
 .qs-value.expense {
-    color: var(--expense);
+    color: var(--danger);
 }
 
 .qs-divider {
     height: 1px;
     background: var(--border);
-    margin: 8px 0;
+    margin: 6px 0;
 }
 
 .quick-stat-item.total-row .qs-label,
 .quick-stat-item.total-row .qs-value {
     font-weight: 700;
     font-size: 14px;
+    color: var(--text-dark);
+}
+
+.quick-stat-item.clickable {
+    cursor: pointer;
+    transition: background 0.2s;
+    padding: 4px 0;
+    margin: 0 -8px;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.quick-stat-item.clickable:hover {
+    background: var(--bg);
 }
 
 .qs-link {
