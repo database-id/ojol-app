@@ -405,42 +405,45 @@ function updateIncomeChart(summary, target) {
 
 // Update quick stats panel
 function updateQuickStats(summary) {
-    const gojekIncome = summary.gojek.total;
-    const grabIncome = summary.grab.total;
-    const totalIncome = summary.totalIncome;
-    const gojekOrders = summary.gojek.orders;
-    const grabOrders = summary.grab.orders;
+    const gojekIncome = summary.gojek.total || 0;
+    const grabIncome = summary.grab.total || 0;
+    const totalIncome = summary.totalIncome || 0;
+    const gojekOrders = summary.gojek.orders || 0;
+    const grabOrders = summary.grab.orders || 0;
+    const netIncome = summary.netIncome || 0;
 
     // Calculate percentages
     const gojekPct = totalIncome > 0 ? Math.round((gojekIncome / totalIncome) * 100) : 0;
     const grabPct = totalIncome > 0 ? Math.round((grabIncome / totalIncome) * 100) : 0;
 
-    // Determine top platform
-    let topPlatform = '-';
-    if (gojekOrders > 0 || grabOrders > 0) {
-        if (gojekOrders > grabOrders) {
-            topPlatform = `Gojek (${gojekOrders})`;
-        } else if (grabOrders > gojekOrders) {
-            topPlatform = `Grab (${grabOrders})`;
-        } else {
-            topPlatform = `Sama (${gojekOrders})`;
-        }
-    }
+    // Total orders
+    const totalOrders = gojekOrders + grabOrders;
 
-    // Calculate average (for weekly/monthly)
-    let avgDaily = summary.netIncome;
+    // Calculate value and label based on view
+    let avgValue = netIncome;
+    let avgLabel = 'Pendapatan Bersih';
+
     if (currentDashboardView === 'weekly') {
-        avgDaily = Math.round(summary.netIncome / 7);
+        avgValue = Math.round(netIncome / 7);
+        avgLabel = 'Rata-rata/hari';
     } else if (currentDashboardView === 'monthly') {
         const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
-        avgDaily = Math.round(summary.netIncome / daysInMonth);
+        avgValue = Math.round(netIncome / daysInMonth);
+        avgLabel = 'Rata-rata/hari';
     }
 
     // Update DOM
-    document.getElementById('statAvgDaily').textContent = formatRupiah(avgDaily);
-    document.getElementById('statTopPlatform').textContent = topPlatform;
-    document.getElementById('statGojekPct').textContent = `${gojekPct}%`;
-    document.getElementById('statGrabPct').textContent = `${grabPct}%`;
+    const labelEl = document.getElementById('statAvgLabel');
+    const avgEl = document.getElementById('statAvgDaily');
+    const orderEl = document.getElementById('statTopPlatform');
+    const gojekEl = document.getElementById('statGojekPct');
+    const grabEl = document.getElementById('statGrabPct');
+
+    if (labelEl) labelEl.textContent = avgLabel;
+    if (avgEl) avgEl.textContent = formatRupiah(avgValue);
+    if (orderEl) orderEl.textContent = `${totalOrders} order`;
+    if (gojekEl) gojekEl.textContent = `${gojekPct}%`;
+    if (grabEl) grabEl.textContent = `${grabPct}%`;
 }
 
 // Format rupiah in short form (K for thousands)
