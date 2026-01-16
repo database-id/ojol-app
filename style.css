@@ -343,10 +343,13 @@ body {
     font-size: 18px;
     font-weight: 700;
     white-space: nowrap;
+    color: var(--text-dark);
 }
 
-.card-amount.gojek { color: var(--text-dark); }
-.card-amount.grab { color: var(--text-dark); }
+.summary-card .card-amount.gojek,
+.summary-card .card-amount.grab {
+    color: var(--text-dark) !important;
+}
 .card-amount.total { color: var(--primary); }
 .card-amount.expense { color: var(--danger); }
 
