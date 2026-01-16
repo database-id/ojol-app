@@ -1,0 +1,1145 @@
+// ==================== DATA STORAGE ====================
+const STORAGE_KEYS = {
+    INCOME: 'ojol_income',
+    EXPENSE: 'ojol_expense',
+    TARGET: 'ojol_target'
+};
+
+// ==================== UTILITY FUNCTIONS ====================
+function formatRupiah(num) {
+    return 'Rp ' + num.toLocaleString('id-ID');
+}
+
+function getStorage(key) {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : null;
+}
+
+function setStorage(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function getToday() {
+    return new Date().toISOString().split('T')[0];
+}
+
+function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function formatDateShort(dateStr) {
+    const date = new Date(dateStr);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    return `${date.getDate()} ${months[date.getMonth()]}`;
+}
+
+function getWeekRange() {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - dayOfWeek);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    return {
+        start: startOfWeek.toISOString().split('T')[0],
+        end: endOfWeek.toISOString().split('T')[0]
+    };
+}
+
+function getMonthRange(year, month) {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+    return {
+        start: startDate.toISOString().split('T')[0],
+        end: endDate.toISOString().split('T')[0]
+    };
+}
+
+// ==================== INCOME FUNCTIONS ====================
+function getIncome() {
+    return getStorage(STORAGE_KEYS.INCOME) || [];
+}
+
+function saveIncome(data) {
+    setStorage(STORAGE_KEYS.INCOME, data);
+}
+
+function addIncome(income) {
+    const incomes = getIncome();
+    income.id = Date.now();
+    income.createdAt = new Date().toISOString();
+    incomes.push(income);
+    saveIncome(incomes);
+    return income;
+}
+
+function updateIncome(id, data) {
+    const incomes = getIncome();
+    const index = incomes.findIndex(i => i.id === id);
+    if (index !== -1) {
+        incomes[index] = { ...incomes[index], ...data };
+        saveIncome(incomes);
+    }
+}
+
+function deleteIncome(id) {
+    let incomes = getIncome();
+    incomes = incomes.filter(i => i.id !== id);
+    saveIncome(incomes);
+}
+
+function getIncomeByDate(date) {
+    return getIncome().filter(i => i.date === date);
+}
+
+function getIncomeByDateRange(startDate, endDate) {
+    return getIncome().filter(i => i.date >= startDate && i.date <= endDate);
+}
+
+function getIncomeByMonth(year, month) {
+    const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+    return getIncome().filter(i => i.date.startsWith(monthStr));
+}
+
+// ==================== EXPENSE FUNCTIONS ====================
+function getExpense() {
+    return getStorage(STORAGE_KEYS.EXPENSE) || [];
+}
+
+function saveExpense(data) {
+    setStorage(STORAGE_KEYS.EXPENSE, data);
+}
+
+function addExpense(expense) {
+    const expenses = getExpense();
+    expense.id = Date.now();
+    expense.createdAt = new Date().toISOString();
+    expenses.push(expense);
+    saveExpense(expenses);
+    return expense;
+}
+
+function updateExpense(id, data) {
+    const expenses = getExpense();
+    const index = expenses.findIndex(e => e.id === id);
+    if (index !== -1) {
+        expenses[index] = { ...expenses[index], ...data };
+        saveExpense(expenses);
+    }
+}
+
+function deleteExpense(id) {
+    let expenses = getExpense();
+    expenses = expenses.filter(e => e.id !== id);
+    saveExpense(expenses);
+}
+
+function getExpenseByDate(date) {
+    return getExpense().filter(e => e.date === date);
+}
+
+function getExpenseByDateRange(startDate, endDate) {
+    return getExpense().filter(e => e.date >= startDate && e.date <= endDate);
+}
+
+function getExpenseByMonth(year, month) {
+    const monthStr = `${year}-${String(month).padStart(2, '0')}`;
+    return getExpense().filter(e => e.date.startsWith(monthStr));
+}
+
+// ==================== TARGET FUNCTIONS ====================
+function getTarget() {
+    return getStorage(STORAGE_KEYS.TARGET) || {
+        daily: 200000,
+        weekly: 1400000,
+        monthly: 6000000
+    };
+}
+
+function saveTarget(target) {
+    setStorage(STORAGE_KEYS.TARGET, target);
+}
+
+// ==================== SUMMARY CALCULATIONS ====================
+function calculateSummary(incomes, expenses) {
+    const gojekData = incomes.filter(i => i.platform === 'gojek');
+    const grabData = incomes.filter(i => i.platform === 'grab');
+
+    const gojekTotal = gojekData.reduce((sum, i) => sum + i.amount + (i.bonus || 0), 0);
+    const gojekOrders = gojekData.reduce((sum, i) => sum + i.orders, 0);
+    const gojekBonus = gojekData.reduce((sum, i) => sum + (i.bonus || 0), 0);
+
+    const grabTotal = grabData.reduce((sum, i) => sum + i.amount + (i.bonus || 0), 0);
+    const grabOrders = grabData.reduce((sum, i) => sum + i.orders, 0);
+    const grabBonus = grabData.reduce((sum, i) => sum + (i.bonus || 0), 0);
+
+    const totalIncome = gojekTotal + grabTotal;
+    const totalOrders = gojekOrders + grabOrders;
+    const totalBonus = gojekBonus + grabBonus;
+    const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const netIncome = totalIncome - totalExpense;
+
+    return {
+        gojek: { total: gojekTotal, orders: gojekOrders, bonus: gojekBonus },
+        grab: { total: grabTotal, orders: grabOrders, bonus: grabBonus },
+        totalIncome,
+        totalOrders,
+        totalBonus,
+        totalExpense,
+        netIncome
+    };
+}
+
+// ==================== UI NAVIGATION ====================
+function switchPage(pageName) {
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.style.display = 'none';
+    });
+
+    document.getElementById(`${pageName}Section`).style.display = 'block';
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.page === pageName) {
+            item.classList.add('active');
+        }
+    });
+
+    // Refresh data based on page
+    if (pageName === 'dashboard') updateDashboard();
+    else if (pageName === 'pendapatan') loadIncomeList();
+    else if (pageName === 'pengeluaran') loadExpenseList();
+    else if (pageName === 'rekap') loadRekap();
+    else if (pageName === 'target') loadTargetPage();
+}
+
+// ==================== DASHBOARD ====================
+// Current selected date for dashboard
+let selectedDate = getToday();
+let currentDashboardView = 'daily'; // 'daily', 'weekly', 'monthly'
+let selectedMonth = new Date().getMonth() + 1;
+let selectedYear = new Date().getFullYear();
+
+// Open date picker when clicking date display
+function openDatePicker() {
+    document.getElementById('dashboardDate').showPicker();
+}
+
+// Switch dashboard view (daily, weekly, monthly)
+function switchDashboardView(view) {
+    currentDashboardView = view;
+
+    // Update tabs
+    document.querySelectorAll('.period-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (tab.dataset.view === view) {
+            tab.classList.add('active');
+        }
+    });
+
+    // Show/hide sections based on view
+    const dailySections = ['.today-summary', '.target-section'];
+    const weeklySection = document.getElementById('weeklyOverviewSection');
+    const monthlySection = document.getElementById('monthlyOverviewSection');
+    const recentSection = document.querySelector('.recent-section');
+
+    if (view === 'daily') {
+        dailySections.forEach(sel => {
+            const el = document.querySelector(sel);
+            if (el) el.style.display = '';
+        });
+        weeklySection.style.display = '';
+        monthlySection.style.display = 'none';
+        recentSection.style.display = '';
+        document.querySelector('.date-navigator').style.display = 'flex';
+    } else if (view === 'weekly') {
+        dailySections.forEach(sel => {
+            const el = document.querySelector(sel);
+            if (el) el.style.display = 'none';
+        });
+        weeklySection.style.display = '';
+        monthlySection.style.display = 'none';
+        recentSection.style.display = 'none';
+        document.querySelector('.date-navigator').style.display = 'none';
+    } else if (view === 'monthly') {
+        dailySections.forEach(sel => {
+            const el = document.querySelector(sel);
+            if (el) el.style.display = 'none';
+        });
+        weeklySection.style.display = 'none';
+        monthlySection.style.display = '';
+        recentSection.style.display = 'none';
+        document.querySelector('.date-navigator').style.display = 'none';
+    }
+
+    updateDashboard();
+}
+
+// Navigate month for monthly view
+function navigateMonth(offset) {
+    selectedMonth += offset;
+    if (selectedMonth > 12) {
+        selectedMonth = 1;
+        selectedYear++;
+    } else if (selectedMonth < 1) {
+        selectedMonth = 12;
+        selectedYear--;
+    }
+    updateDashboard();
+}
+
+function updateDashboard() {
+    // Initialize date picker
+    document.getElementById('dashboardDate').value = selectedDate;
+    const dateTextEl = document.querySelector('#currentDate .date-text');
+    if (dateTextEl) {
+        dateTextEl.textContent = formatDate(selectedDate);
+    }
+
+    // Update labels based on whether it's today or not
+    const isToday = selectedDate === getToday();
+    const labelSuffix = isToday ? 'Hari Ini' : formatDateShort(selectedDate);
+
+    document.getElementById('gojekLabel').textContent = `Gojek ${labelSuffix}`;
+    document.getElementById('grabLabel').textContent = `Grab ${labelSuffix}`;
+    document.getElementById('totalLabel').textContent = `Total ${labelSuffix}`;
+
+    // Selected date's data
+    const dayIncomes = getIncomeByDate(selectedDate);
+    const dayExpenses = getExpenseByDate(selectedDate);
+    const daySummary = calculateSummary(dayIncomes, dayExpenses);
+
+    document.getElementById('todayGojek').textContent = formatRupiah(daySummary.gojek.total);
+    document.getElementById('todayGojekOrders').textContent = `${daySummary.gojek.orders} order`;
+    document.getElementById('todayGrab').textContent = formatRupiah(daySummary.grab.total);
+    document.getElementById('todayGrabOrders').textContent = `${daySummary.grab.orders} order`;
+    document.getElementById('todayTotal').textContent = formatRupiah(daySummary.totalIncome);
+    document.getElementById('todayTotalOrders').textContent = `${daySummary.totalOrders} order`;
+    document.getElementById('todayExpense').textContent = formatRupiah(daySummary.totalExpense);
+    document.getElementById('todayNet').textContent = formatRupiah(daySummary.netIncome);
+
+    // Target progress
+    const target = getTarget();
+    const targetPercent = target.daily > 0 ? Math.min(100, (daySummary.netIncome / target.daily) * 100) : 0;
+    document.getElementById('targetCurrent').textContent = formatRupiah(daySummary.netIncome);
+    document.getElementById('targetGoal').textContent = formatRupiah(target.daily);
+    document.getElementById('targetProgress').style.width = `${targetPercent}%`;
+    document.getElementById('targetPercent').textContent = `${Math.round(targetPercent)}%`;
+
+    // Weekly data (from selected date's week)
+    updateWeeklySection();
+
+    // Monthly data
+    updateMonthlySection();
+
+    // Recent activity for selected date
+    loadRecentActivity();
+}
+
+// Update weekly section with data
+function updateWeeklySection() {
+    const weekRange = getWeekRangeFromDate(selectedDate);
+    const weekIncomes = getIncomeByDateRange(weekRange.start, weekRange.end);
+    const weekExpenses = getExpenseByDateRange(weekRange.start, weekRange.end);
+    const weekSummary = calculateSummary(weekIncomes, weekExpenses);
+
+    // Week range label
+    document.getElementById('weekRangeLabel').textContent = `${formatDateShort(weekRange.start)} - ${formatDateShort(weekRange.end)}`;
+
+    // Main stats
+    document.getElementById('weeklyIncome').textContent = formatRupiah(weekSummary.totalIncome);
+    document.getElementById('weeklyOrders').textContent = weekSummary.totalOrders;
+    document.getElementById('weeklyExpense').textContent = formatRupiah(weekSummary.totalExpense);
+    document.getElementById('weeklyNet').textContent = formatRupiah(weekSummary.netIncome);
+
+    // Platform breakdown
+    document.getElementById('weeklyGojek').textContent = formatRupiah(weekSummary.gojek.total);
+    document.getElementById('weeklyGojekOrders').textContent = `${weekSummary.gojek.orders} order`;
+    document.getElementById('weeklyGrab').textContent = formatRupiah(weekSummary.grab.total);
+    document.getElementById('weeklyGrabOrders').textContent = `${weekSummary.grab.orders} order`;
+
+    // Daily breakdown for the week
+    if (currentDashboardView === 'weekly') {
+        loadWeeklyDailyBreakdown(weekRange);
+    }
+}
+
+// Load daily breakdown for weekly view
+function loadWeeklyDailyBreakdown(weekRange) {
+    const container = document.getElementById('weeklyDailyBreakdown');
+    const startDate = new Date(weekRange.start);
+    const endDate = new Date(weekRange.end);
+    const days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+    let html = '<h4 style="font-size: 14px; color: var(--text-gray); margin-bottom: 12px;">Detail per Hari</h4>';
+
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const dayIncomes = getIncomeByDate(dateStr);
+        const dayExpenses = getExpenseByDate(dateStr);
+        const daySummary = calculateSummary(dayIncomes, dayExpenses);
+
+        const dayName = days[currentDate.getDay()];
+        const hasData = dayIncomes.length > 0 || dayExpenses.length > 0;
+
+        if (hasData || currentDashboardView === 'weekly') {
+            html += `
+                <div class="breakdown-item">
+                    <div>
+                        <span class="breakdown-item-date">${formatDateShort(dateStr)}</span>
+                        <span class="breakdown-item-day">${dayName}</span>
+                    </div>
+                    <div class="breakdown-item-amount">
+                        <span class="breakdown-item-total ${daySummary.netIncome >= 0 ? 'positive' : 'negative'}">${formatRupiah(daySummary.netIncome)}</span>
+                        <span class="breakdown-item-detail">${daySummary.totalOrders} order • ${formatRupiah(daySummary.totalExpense)} keluar</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    container.innerHTML = html;
+}
+
+// Update monthly section with data
+function updateMonthlySection() {
+    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    document.getElementById('monthLabel').textContent = `${monthNames[selectedMonth - 1]} ${selectedYear}`;
+
+    const monthRange = getMonthRange(selectedYear, selectedMonth);
+    const monthIncomes = getIncomeByDateRange(monthRange.start, monthRange.end);
+    const monthExpenses = getExpenseByDateRange(monthRange.start, monthRange.end);
+    const monthSummary = calculateSummary(monthIncomes, monthExpenses);
+
+    // Main stats
+    document.getElementById('monthlyIncome').textContent = formatRupiah(monthSummary.totalIncome);
+    document.getElementById('monthlyOrders').textContent = monthSummary.totalOrders;
+    document.getElementById('monthlyExpense').textContent = formatRupiah(monthSummary.totalExpense);
+    document.getElementById('monthlyNet').textContent = formatRupiah(monthSummary.netIncome);
+
+    // Platform breakdown
+    document.getElementById('monthlyGojek').textContent = formatRupiah(monthSummary.gojek.total);
+    document.getElementById('monthlyGojekOrders').textContent = `${monthSummary.gojek.orders} order`;
+    document.getElementById('monthlyGrab').textContent = formatRupiah(monthSummary.grab.total);
+    document.getElementById('monthlyGrabOrders').textContent = `${monthSummary.grab.orders} order`;
+
+    // Weekly breakdown for the month
+    if (currentDashboardView === 'monthly') {
+        loadMonthlyWeeklyBreakdown(monthRange);
+    }
+}
+
+// Load weekly breakdown for monthly view
+function loadMonthlyWeeklyBreakdown(monthRange) {
+    const container = document.getElementById('monthlyWeeklyBreakdown');
+    const startDate = new Date(monthRange.start);
+    const endDate = new Date(monthRange.end);
+
+    let html = '<h4 style="font-size: 14px; color: var(--text-gray); margin-bottom: 12px;">Detail per Minggu</h4>';
+
+    let weekNum = 1;
+    let currentWeekStart = new Date(startDate);
+    // Adjust to Sunday
+    currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
+
+    while (currentWeekStart <= endDate) {
+        const weekEnd = new Date(currentWeekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+
+        // Clamp to month range
+        const effectiveStart = new Date(Math.max(currentWeekStart.getTime(), startDate.getTime()));
+        const effectiveEnd = new Date(Math.min(weekEnd.getTime(), endDate.getTime()));
+
+        const weekStartStr = effectiveStart.toISOString().split('T')[0];
+        const weekEndStr = effectiveEnd.toISOString().split('T')[0];
+
+        const weekIncomes = getIncomeByDateRange(weekStartStr, weekEndStr);
+        const weekExpenses = getExpenseByDateRange(weekStartStr, weekEndStr);
+        const weekSummary = calculateSummary(weekIncomes, weekExpenses);
+
+        html += `
+            <div class="breakdown-item">
+                <div>
+                    <span class="breakdown-item-date">Minggu ${weekNum}</span>
+                    <span class="breakdown-item-day">${formatDateShort(weekStartStr)} - ${formatDateShort(weekEndStr)}</span>
+                </div>
+                <div class="breakdown-item-amount">
+                    <span class="breakdown-item-total ${weekSummary.netIncome >= 0 ? 'positive' : 'negative'}">${formatRupiah(weekSummary.netIncome)}</span>
+                    <span class="breakdown-item-detail">${weekSummary.totalOrders} order • ${formatRupiah(weekSummary.totalExpense)} keluar</span>
+                </div>
+            </div>
+        `;
+
+        currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+        weekNum++;
+    }
+
+    container.innerHTML = html;
+}
+
+// Get week range from any date
+function getWeekRangeFromDate(dateStr) {
+    const date = new Date(dateStr);
+    const dayOfWeek = date.getDay();
+    const startOfWeek = new Date(date);
+    startOfWeek.setDate(date.getDate() - dayOfWeek);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    return {
+        start: startOfWeek.toISOString().split('T')[0],
+        end: endOfWeek.toISOString().split('T')[0]
+    };
+}
+
+// Navigate to previous/next date
+function navigateDate(offset) {
+    const date = new Date(selectedDate);
+    date.setDate(date.getDate() + offset);
+    selectedDate = date.toISOString().split('T')[0];
+    updateDashboard();
+}
+
+// Load dashboard by selected date from date picker
+function loadDashboardByDate() {
+    selectedDate = document.getElementById('dashboardDate').value;
+    updateDashboard();
+}
+
+// Go to today
+function goToToday() {
+    selectedDate = getToday();
+    updateDashboard();
+}
+
+function loadRecentActivity() {
+    const incomes = getIncomeByDate(selectedDate);
+    const expenses = getExpenseByDate(selectedDate);
+
+    // Update activity header
+    const isToday = selectedDate === getToday();
+    const headerText = isToday ? 'Aktivitas Hari Ini' : `Aktivitas ${formatDateShort(selectedDate)}`;
+    document.getElementById('activityHeader').textContent = headerText;
+
+    const activities = [
+        ...incomes.map(i => ({ ...i, type: 'income' })),
+        ...expenses.map(e => ({ ...e, type: 'expense' }))
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const container = document.getElementById('recentList');
+
+    if (activities.length === 0) {
+        const emptyText = isToday ? 'Belum ada data hari ini' : `Tidak ada data pada ${formatDateShort(selectedDate)}`;
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">📝</span>
+                <p>${emptyText}</p>
+                <button class="btn btn-primary" onclick="switchPage('pendapatan')">Tambah Pendapatan</button>
+            </div>
+        `;
+        return;
+    }
+
+    const logoUrls = {
+        gojek: 'gojek-logo.png',
+        grab: 'grab-logo.png'
+    };
+
+    container.innerHTML = activities.slice(0, 5).map(item => {
+        if (item.type === 'income') {
+            return `
+                <div class="recent-item">
+                    <div class="recent-item-left">
+                        <div class="recent-platform ${item.platform}">
+                            <img src="${logoUrls[item.platform]}" alt="${item.platform}" class="recent-logo-img">
+                        </div>
+                        <div class="recent-info">
+                            <h4>${item.platform === 'gojek' ? 'Gojek' : 'Grab'}</h4>
+                            <p>${item.note || `${item.orders} order`}</p>
+                        </div>
+                    </div>
+                    <div class="recent-item-right">
+                        <span class="recent-amount income">+${formatRupiah(item.amount + (item.bonus || 0))}</span>
+                        <span class="recent-orders">${item.orders} order</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            const icons = { bensin: '⛽', pulsa: '📱', makan: '🍜', ngopi: '☕', service: '🔧', parkir: '🅿️', lainnya: '📦' };
+            const labels = { bensin: 'Bensin', pulsa: 'Pulsa/Data', makan: 'Makan', ngopi: 'Ngopi', service: 'Service', parkir: 'Parkir', lainnya: 'Lainnya' };
+            return `
+                <div class="recent-item">
+                    <div class="recent-item-left">
+                        <div class="recent-platform expense">${icons[item.category]}</div>
+                        <div class="recent-info">
+                            <h4>${labels[item.category]}</h4>
+                            <p>${item.note || 'Pengeluaran'}</p>
+                        </div>
+                    </div>
+                    <div class="recent-item-right">
+                        <span class="recent-amount expense">-${formatRupiah(item.amount)}</span>
+                    </div>
+                </div>
+            `;
+        }
+    }).join('');
+}
+
+// ==================== INCOME PAGE ====================
+function loadIncomeList() {
+    const filterMonth = document.getElementById('incomeFilterMonth').value;
+    const filterPlatform = document.getElementById('incomeFilterPlatform').value;
+
+    let incomes = getIncome();
+
+    if (filterMonth) {
+        incomes = incomes.filter(i => i.date.startsWith(filterMonth));
+    }
+    if (filterPlatform) {
+        incomes = incomes.filter(i => i.platform === filterPlatform);
+    }
+
+    incomes.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const container = document.getElementById('incomeList');
+
+    if (incomes.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">📝</span>
+                <p>Belum ada data pendapatan</p>
+            </div>
+        `;
+        return;
+    }
+
+    const logoUrls = {
+        gojek: 'gojek-logo.png',
+        grab: 'grab-logo.png'
+    };
+
+    container.innerHTML = incomes.map(item => `
+        <div class="data-item">
+            <div class="data-item-left">
+                <div class="data-icon ${item.platform}">
+                    <img src="${logoUrls[item.platform]}" alt="${item.platform}" class="data-logo-img">
+                </div>
+                <div class="data-info">
+                    <h4>${item.platform === 'gojek' ? 'Gojek' : 'Grab'}</h4>
+                    <p>${formatDateShort(item.date)} • ${item.note || '-'}</p>
+                </div>
+            </div>
+            <div class="data-item-right">
+                <div class="data-amount">
+                    <span class="amount income">+${formatRupiah(item.amount + (item.bonus || 0))}</span>
+                    <span class="orders">${item.orders} order${item.bonus ? ` • Bonus ${formatRupiah(item.bonus)}` : ''}</span>
+                </div>
+                <div class="data-actions">
+                    <button class="btn-edit" onclick="editIncome(${item.id})">Edit</button>
+                    <button class="btn-delete" onclick="confirmDeleteIncome(${item.id})">Hapus</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function editIncome(id) {
+    const incomes = getIncome();
+    const item = incomes.find(i => i.id === id);
+    if (!item) return;
+
+    document.getElementById('editModalTitle').textContent = 'Edit Pendapatan';
+    document.getElementById('editId').value = id;
+    document.getElementById('editType').value = 'income';
+
+    document.getElementById('editFormContent').innerHTML = `
+        <div class="form-group">
+            <label>Platform</label>
+            <select id="editPlatform">
+                <option value="gojek" ${item.platform === 'gojek' ? 'selected' : ''}>Gojek</option>
+                <option value="grab" ${item.platform === 'grab' ? 'selected' : ''}>Grab</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Tanggal</label>
+            <input type="date" id="editDate" value="${item.date}">
+        </div>
+        <div class="form-group">
+            <label>Pendapatan (Rp)</label>
+            <input type="number" id="editAmount" value="${item.amount}">
+        </div>
+        <div class="form-group">
+            <label>Jumlah Order</label>
+            <input type="number" id="editOrders" value="${item.orders}">
+        </div>
+        <div class="form-group">
+            <label>Bonus (Rp)</label>
+            <input type="number" id="editBonus" value="${item.bonus || 0}">
+        </div>
+        <div class="form-group">
+            <label>Catatan</label>
+            <input type="text" id="editNote" value="${item.note || ''}">
+        </div>
+    `;
+
+    document.getElementById('editModal').classList.add('show');
+}
+
+function confirmDeleteIncome(id) {
+    if (confirm('Yakin ingin menghapus data ini?')) {
+        deleteIncome(id);
+        loadIncomeList();
+        updateDashboard();
+        showToast('Data berhasil dihapus');
+    }
+}
+
+// ==================== EXPENSE PAGE ====================
+function loadExpenseList() {
+    const filterMonth = document.getElementById('expenseFilterMonth').value;
+    const filterCategory = document.getElementById('expenseFilterCategory').value;
+
+    let expenses = getExpense();
+
+    if (filterMonth) {
+        expenses = expenses.filter(e => e.date.startsWith(filterMonth));
+    }
+    if (filterCategory) {
+        expenses = expenses.filter(e => e.category === filterCategory);
+    }
+
+    expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    const container = document.getElementById('expenseList');
+    const icons = { bensin: '⛽', pulsa: '📱', makan: '🍜', ngopi: '☕', service: '🔧', parkir: '🅿️', lainnya: '📦' };
+    const labels = { bensin: 'Bensin', pulsa: 'Pulsa/Data', makan: 'Makan', ngopi: 'Ngopi', service: 'Service', parkir: 'Parkir', lainnya: 'Lainnya' };
+
+    if (expenses.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">📝</span>
+                <p>Belum ada data pengeluaran</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = expenses.map(item => `
+        <div class="data-item">
+            <div class="data-item-left">
+                <div class="data-icon ${item.category}">
+                    ${icons[item.category]}
+                </div>
+                <div class="data-info">
+                    <h4>${labels[item.category]}</h4>
+                    <p>${formatDateShort(item.date)} • ${item.note || '-'}</p>
+                </div>
+            </div>
+            <div class="data-item-right">
+                <div class="data-amount">
+                    <span class="amount expense">-${formatRupiah(item.amount)}</span>
+                </div>
+                <div class="data-actions">
+                    <button class="btn-edit" onclick="editExpense(${item.id})">Edit</button>
+                    <button class="btn-delete" onclick="confirmDeleteExpense(${item.id})">Hapus</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function editExpense(id) {
+    const expenses = getExpense();
+    const item = expenses.find(e => e.id === id);
+    if (!item) return;
+
+    document.getElementById('editModalTitle').textContent = 'Edit Pengeluaran';
+    document.getElementById('editId').value = id;
+    document.getElementById('editType').value = 'expense';
+
+    const categories = ['bensin', 'pulsa', 'makan', 'ngopi', 'service', 'parkir', 'lainnya'];
+    const labels = { bensin: 'Bensin', pulsa: 'Pulsa/Data', makan: 'Makan', ngopi: 'Ngopi', service: 'Service', parkir: 'Parkir', lainnya: 'Lainnya' };
+
+    document.getElementById('editFormContent').innerHTML = `
+        <div class="form-group">
+            <label>Kategori</label>
+            <select id="editCategory">
+                ${categories.map(c => `<option value="${c}" ${item.category === c ? 'selected' : ''}>${labels[c]}</option>`).join('')}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Tanggal</label>
+            <input type="date" id="editDate" value="${item.date}">
+        </div>
+        <div class="form-group">
+            <label>Jumlah (Rp)</label>
+            <input type="number" id="editAmount" value="${item.amount}">
+        </div>
+        <div class="form-group">
+            <label>Catatan</label>
+            <input type="text" id="editNote" value="${item.note || ''}">
+        </div>
+    `;
+
+    document.getElementById('editModal').classList.add('show');
+}
+
+function confirmDeleteExpense(id) {
+    if (confirm('Yakin ingin menghapus data ini?')) {
+        deleteExpense(id);
+        loadExpenseList();
+        updateDashboard();
+        showToast('Data berhasil dihapus');
+    }
+}
+
+// ==================== REKAP PAGE ====================
+let currentPeriod = 'daily';
+
+function loadRekap() {
+    const year = parseInt(document.getElementById('rekapYear').value) || new Date().getFullYear();
+    const month = parseInt(document.getElementById('rekapMonth').value) || new Date().getMonth() + 1;
+
+    const { start, end } = getMonthRange(year, month);
+    const incomes = getIncomeByDateRange(start, end);
+    const expenses = getExpenseByDateRange(start, end);
+    const summary = calculateSummary(incomes, expenses);
+
+    // Update summary cards
+    document.getElementById('rekapGojekIncome').textContent = formatRupiah(summary.gojek.total);
+    document.getElementById('rekapGojekOrders').textContent = summary.gojek.orders;
+    document.getElementById('rekapGojekBonus').textContent = formatRupiah(summary.gojek.bonus);
+
+    document.getElementById('rekapGrabIncome').textContent = formatRupiah(summary.grab.total);
+    document.getElementById('rekapGrabOrders').textContent = summary.grab.orders;
+    document.getElementById('rekapGrabBonus').textContent = formatRupiah(summary.grab.bonus);
+
+    document.getElementById('rekapTotalIncome').textContent = formatRupiah(summary.totalIncome);
+    document.getElementById('rekapTotalOrders').textContent = summary.totalOrders;
+    document.getElementById('rekapTotalBonus').textContent = formatRupiah(summary.totalBonus);
+    document.getElementById('rekapTotalExpense').textContent = formatRupiah(summary.totalExpense);
+    document.getElementById('rekapNetIncome').textContent = formatRupiah(summary.netIncome);
+
+    // Generate breakdown
+    generateBreakdown(year, month);
+}
+
+function generateBreakdown(year, month) {
+    const { start, end } = getMonthRange(year, month);
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    const breakdownData = [];
+    const currentDate = new Date(startDate);
+
+    while (currentDate <= endDate) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const dayIncomes = getIncomeByDate(dateStr);
+        const dayExpenses = getExpenseByDate(dateStr);
+
+        if (dayIncomes.length > 0 || dayExpenses.length > 0) {
+            const daySummary = calculateSummary(dayIncomes, dayExpenses);
+            breakdownData.push({
+                date: dateStr,
+                gojek: daySummary.gojek.total,
+                grab: daySummary.grab.total,
+                expense: daySummary.totalExpense,
+                net: daySummary.netIncome
+            });
+        }
+
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    const container = document.getElementById('rekapBreakdown');
+
+    if (breakdownData.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>Belum ada data untuk periode ini</p></div>';
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="breakdown-row header">
+            <span>Tanggal</span>
+            <span>Gojek</span>
+            <span>Grab</span>
+            <span>Pengeluaran</span>
+            <span>Bersih</span>
+        </div>
+        ${breakdownData.reverse().map(row => `
+            <div class="breakdown-row">
+                <span>${formatDateShort(row.date)}</span>
+                <span class="gojek-val">${formatRupiah(row.gojek)}</span>
+                <span class="grab-val">${formatRupiah(row.grab)}</span>
+                <span style="color: var(--danger)">-${formatRupiah(row.expense)}</span>
+                <span class="total-val" style="color: ${row.net >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatRupiah(row.net)}</span>
+            </div>
+        `).join('')}
+    `;
+}
+
+// ==================== TARGET PAGE ====================
+function loadTargetPage() {
+    const target = getTarget();
+    document.getElementById('targetDaily').value = target.daily;
+    document.getElementById('targetWeekly').value = target.weekly;
+    document.getElementById('targetMonthly').value = target.monthly;
+
+    // Update target progress cards
+    const today = getToday();
+    const todayIncomes = getIncomeByDate(today);
+    const todayExpenses = getExpenseByDate(today);
+    const todaySummary = calculateSummary(todayIncomes, todayExpenses);
+
+    const weekRange = getWeekRange();
+    const weekIncomes = getIncomeByDateRange(weekRange.start, weekRange.end);
+    const weekExpenses = getExpenseByDateRange(weekRange.start, weekRange.end);
+    const weekSummary = calculateSummary(weekIncomes, weekExpenses);
+
+    const now = new Date();
+    const monthRange = getMonthRange(now.getFullYear(), now.getMonth() + 1);
+    const monthIncomes = getIncomeByDateRange(monthRange.start, monthRange.end);
+    const monthExpenses = getExpenseByDateRange(monthRange.start, monthRange.end);
+    const monthSummary = calculateSummary(monthIncomes, monthExpenses);
+
+    // Daily
+    const dailyPercent = target.daily > 0 ? Math.min(100, (todaySummary.netIncome / target.daily) * 100) : 0;
+    document.getElementById('dailyPercent').textContent = `${Math.round(dailyPercent)}%`;
+    document.getElementById('dailyCurrent').textContent = formatRupiah(todaySummary.netIncome);
+    document.getElementById('dailyGoal').textContent = formatRupiah(target.daily);
+    document.getElementById('dailyRing').style.background = `conic-gradient(var(--primary) ${dailyPercent}%, var(--border) ${dailyPercent}%)`;
+    document.getElementById('targetTodayDate').textContent = formatDateShort(today);
+
+    // Weekly
+    const weeklyPercent = target.weekly > 0 ? Math.min(100, (weekSummary.netIncome / target.weekly) * 100) : 0;
+    document.getElementById('weeklyPercent').textContent = `${Math.round(weeklyPercent)}%`;
+    document.getElementById('weeklyCurrent').textContent = formatRupiah(weekSummary.netIncome);
+    document.getElementById('weeklyGoal').textContent = formatRupiah(target.weekly);
+    document.getElementById('weeklyRing').style.background = `conic-gradient(var(--primary) ${weeklyPercent}%, var(--border) ${weeklyPercent}%)`;
+    document.getElementById('targetWeekDate').textContent = `${formatDateShort(weekRange.start)} - ${formatDateShort(weekRange.end)}`;
+
+    // Monthly
+    const monthlyPercent = target.monthly > 0 ? Math.min(100, (monthSummary.netIncome / target.monthly) * 100) : 0;
+    document.getElementById('monthlyPercent').textContent = `${Math.round(monthlyPercent)}%`;
+    document.getElementById('monthlyCurrent').textContent = formatRupiah(monthSummary.netIncome);
+    document.getElementById('monthlyGoal').textContent = formatRupiah(target.monthly);
+    document.getElementById('monthlyRing').style.background = `conic-gradient(var(--primary) ${monthlyPercent}%, var(--border) ${monthlyPercent}%)`;
+
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    document.getElementById('targetMonthDate').textContent = months[now.getMonth()];
+}
+
+// ==================== MODAL ====================
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('show');
+}
+
+function saveEdit(e) {
+    e.preventDefault();
+    const id = parseInt(document.getElementById('editId').value);
+    const type = document.getElementById('editType').value;
+
+    if (type === 'income') {
+        updateIncome(id, {
+            platform: document.getElementById('editPlatform').value,
+            date: document.getElementById('editDate').value,
+            amount: parseInt(document.getElementById('editAmount').value) || 0,
+            orders: parseInt(document.getElementById('editOrders').value) || 0,
+            bonus: parseInt(document.getElementById('editBonus').value) || 0,
+            note: document.getElementById('editNote').value
+        });
+        loadIncomeList();
+    } else {
+        updateExpense(id, {
+            category: document.getElementById('editCategory').value,
+            date: document.getElementById('editDate').value,
+            amount: parseInt(document.getElementById('editAmount').value) || 0,
+            note: document.getElementById('editNote').value
+        });
+        loadExpenseList();
+    }
+
+    closeEditModal();
+    updateDashboard();
+    showToast('Data berhasil diupdate');
+}
+
+// ==================== EXPORT DATA ====================
+function exportData() {
+    const data = {
+        income: getIncome(),
+        expense: getExpense(),
+        target: getTarget(),
+        exportedAt: new Date().toISOString()
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ojol-data-${getToday()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Data berhasil di-export');
+}
+
+// ==================== INITIALIZE FILTERS ====================
+function initFilters() {
+    const now = new Date();
+    const months = [];
+
+    // Generate last 12 months
+    for (let i = 0; i < 12; i++) {
+        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const label = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+        months.push({ value, label });
+    }
+
+    const monthSelects = ['incomeFilterMonth', 'expenseFilterMonth', 'rekapMonth'];
+    monthSelects.forEach(id => {
+        const select = document.getElementById(id);
+        if (select) {
+            const defaultOption = select.querySelector('option');
+            select.innerHTML = defaultOption ? defaultOption.outerHTML : '';
+            months.forEach(m => {
+                const option = document.createElement('option');
+                option.value = m.value;
+                option.textContent = m.label;
+                select.appendChild(option);
+            });
+        }
+    });
+
+    // Year selector
+    const yearSelect = document.getElementById('rekapYear');
+    if (yearSelect) {
+        const currentYear = now.getFullYear();
+        yearSelect.innerHTML = '<option value="">Pilih Tahun</option>';
+        for (let y = currentYear; y >= currentYear - 2; y--) {
+            const option = document.createElement('option');
+            option.value = y;
+            option.textContent = y;
+            if (y === currentYear) option.selected = true;
+            yearSelect.appendChild(option);
+        }
+    }
+
+    // Set default month for rekap
+    const rekapMonth = document.getElementById('rekapMonth');
+    if (rekapMonth && rekapMonth.options.length > 1) {
+        rekapMonth.selectedIndex = 1;
+    }
+}
+
+// ==================== EVENT LISTENERS ====================
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize
+    initFilters();
+    updateDashboard();
+
+    // Set default dates
+    document.getElementById('incomeDate').value = getToday();
+    document.getElementById('expenseDate').value = getToday();
+
+    // Navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            switchPage(this.dataset.page);
+        });
+    });
+
+    // Income form
+    document.getElementById('incomeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const platform = document.querySelector('input[name="platform"]:checked').value;
+        const income = {
+            platform,
+            date: document.getElementById('incomeDate').value,
+            amount: parseInt(document.getElementById('incomeAmount').value) || 0,
+            orders: parseInt(document.getElementById('incomeOrders').value) || 0,
+            bonus: parseInt(document.getElementById('incomeBonus').value) || 0,
+            note: document.getElementById('incomeNote').value
+        };
+        addIncome(income);
+        this.reset();
+        document.getElementById('incomeDate').value = getToday();
+        document.querySelector('input[name="platform"][value="gojek"]').checked = true;
+        loadIncomeList();
+        updateDashboard();
+        showToast('Pendapatan berhasil ditambahkan');
+    });
+
+    // Expense form
+    document.getElementById('expenseForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const expense = {
+            category: document.getElementById('expenseCategory').value,
+            date: document.getElementById('expenseDate').value,
+            amount: parseInt(document.getElementById('expenseAmount').value) || 0,
+            note: document.getElementById('expenseNote').value
+        };
+        addExpense(expense);
+        this.reset();
+        document.getElementById('expenseDate').value = getToday();
+        loadExpenseList();
+        updateDashboard();
+        showToast('Pengeluaran berhasil ditambahkan');
+    });
+
+    // Target form
+    document.getElementById('targetForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const target = {
+            daily: parseInt(document.getElementById('targetDaily').value) || 0,
+            weekly: parseInt(document.getElementById('targetWeekly').value) || 0,
+            monthly: parseInt(document.getElementById('targetMonthly').value) || 0
+        };
+        saveTarget(target);
+        loadTargetPage();
+        updateDashboard();
+        showToast('Target berhasil disimpan');
+    });
+
+    // Filters
+    document.getElementById('incomeFilterMonth').addEventListener('change', loadIncomeList);
+    document.getElementById('incomeFilterPlatform').addEventListener('change', loadIncomeList);
+    document.getElementById('expenseFilterMonth').addEventListener('change', loadExpenseList);
+    document.getElementById('expenseFilterCategory').addEventListener('change', loadExpenseList);
+    document.getElementById('rekapMonth').addEventListener('change', loadRekap);
+    document.getElementById('rekapYear').addEventListener('change', loadRekap);
+
+    // Period selector
+    document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentPeriod = this.dataset.period;
+            loadRekap();
+        });
+    });
+
+    // Edit form
+    document.getElementById('editForm').addEventListener('submit', saveEdit);
+
+    // Export
+    document.getElementById('exportBtn').addEventListener('click', exportData);
+
+    // Close modal on outside click
+    document.getElementById('editModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditModal();
+    });
+});

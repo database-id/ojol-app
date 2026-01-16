@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ojol Tracker - Rekap Gojek & Grab</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">🏍️</span>
+                    <h1>Ojol Tracker</h1>
+                </div>
+                <p class="tagline">Rekap Gojek & Grab</p>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" data-page="dashboard">
+                    <span class="icon">📊</span> Dashboard
+                </li>
+                <li class="nav-item" data-page="pendapatan">
+                    <span class="icon">💰</span> Pendapatan
+                </li>
+                <li class="nav-item" data-page="pengeluaran">
+                    <span class="icon">⛽</span> Pengeluaran
+                </li>
+                <li class="nav-item" data-page="rekap">
+                    <span class="icon">📋</span> Rekap
+                </li>
+                <li class="nav-item" data-page="target">
+                    <span class="icon">🎯</span> Target
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <button class="btn btn-outline" id="exportBtn">📥 Export Data</button>
+            </div>
+        </nav>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- DASHBOARD -->
+            <section id="dashboardSection" class="content-section">
+                <div class="page-header">
+                    <h2>Dashboard</h2>
+                    <div class="date-navigator">
+                        <button class="nav-date-btn" onclick="navigateDate(-1)">◀</button>
+                        <div class="date-picker-wrapper" onclick="openDatePicker()">
+                            <input type="date" id="dashboardDate" onchange="loadDashboardByDate()">
+                            <span class="date-display" id="currentDate">
+                                <span class="calendar-icon">📅</span>
+                                <span class="date-text">Senin, 16 Januari 2026</span>
+                                <span class="dropdown-icon">▼</span>
+                            </span>
+                        </div>
+                        <button class="nav-date-btn" onclick="navigateDate(1)">▶</button>
+                        <button class="btn btn-outline btn-today" onclick="goToToday()">Hari Ini</button>
+                    </div>
+                    <!-- Period View Tabs -->
+                    <div class="period-tabs">
+                        <button class="period-tab active" data-view="daily" onclick="switchDashboardView('daily')">Harian</button>
+                        <button class="period-tab" data-view="weekly" onclick="switchDashboardView('weekly')">Mingguan</button>
+                        <button class="period-tab" data-view="monthly" onclick="switchDashboardView('monthly')">Bulanan</button>
+                    </div>
+                </div>
+
+                <!-- Day Summary -->
+                <div class="today-summary">
+                    <div class="summary-card gojek">
+                        <div class="card-icon">
+                            <img src="gojek-logo.png" alt="Gojek" class="platform-logo-img">
+                        </div>
+                        <div class="card-content">
+                            <span class="card-label" id="gojekLabel">Gojek Hari Ini</span>
+                            <span class="card-value" id="todayGojek">Rp 0</span>
+                            <span class="card-orders" id="todayGojekOrders">0 order</span>
+                        </div>
+                    </div>
+                    <div class="summary-card grab">
+                        <div class="card-icon">
+                            <img src="grab-logo.png" alt="Grab" class="platform-logo-img">
+                        </div>
+                        <div class="card-content">
+                            <span class="card-label" id="grabLabel">Grab Hari Ini</span>
+                            <span class="card-value" id="todayGrab">Rp 0</span>
+                            <span class="card-orders" id="todayGrabOrders">0 order</span>
+                        </div>
+                    </div>
+                    <div class="summary-card total">
+                        <div class="card-icon">
+                            <span>💵</span>
+                        </div>
+                        <div class="card-content">
+                            <span class="card-label" id="totalLabel">Total Hari Ini</span>
+                            <span class="card-value" id="todayTotal">Rp 0</span>
+                            <span class="card-orders" id="todayTotalOrders">0 order</span>
+                        </div>
+                    </div>
+                    <div class="summary-card expense">
+                        <div class="card-icon">
+                            <span>💸</span>
+                        </div>
+                        <div class="card-content">
+                            <span class="card-label">Pengeluaran</span>
+                            <span class="card-value" id="todayExpense">Rp 0</span>
+                            <span class="card-orders net-label">Bersih: <strong id="todayNet">Rp 0</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Target Progress -->
+                <div class="target-section">
+                    <div class="section-header">
+                        <h3>Target Harian</h3>
+                        <a href="#" onclick="switchPage('target'); return false;">Ubah Target</a>
+                    </div>
+                    <div class="target-progress-card">
+                        <div class="target-info">
+                            <span class="target-current" id="targetCurrent">Rp 0</span>
+                            <span class="target-separator">dari</span>
+                            <span class="target-goal" id="targetGoal">Rp 0</span>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="targetProgress"></div>
+                            </div>
+                            <span class="progress-percent" id="targetPercent">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weekly Overview -->
+                <div class="weekly-section" id="weeklyOverviewSection">
+                    <div class="section-header">
+                        <h3 id="weeklyHeader">Minggu Ini</h3>
+                        <span class="week-range" id="weekRangeLabel"></span>
+                    </div>
+                    <div class="weekly-stats">
+                        <div class="week-stat">
+                            <span class="stat-label">Total Pendapatan</span>
+                            <span class="stat-value" id="weeklyIncome">Rp 0</span>
+                        </div>
+                        <div class="week-stat">
+                            <span class="stat-label">Total Order</span>
+                            <span class="stat-value" id="weeklyOrders">0</span>
+                        </div>
+                        <div class="week-stat">
+                            <span class="stat-label">Pengeluaran</span>
+                            <span class="stat-value expense" id="weeklyExpense">Rp 0</span>
+                        </div>
+                        <div class="week-stat">
+                            <span class="stat-label">Pendapatan Bersih</span>
+                            <span class="stat-value net" id="weeklyNet">Rp 0</span>
+                        </div>
+                    </div>
+                    <!-- Weekly Platform Breakdown -->
+                    <div class="platform-breakdown" id="weeklyPlatformBreakdown">
+                        <div class="platform-stat gojek">
+                            <img src="gojek-logo.png" alt="Gojek" class="platform-stat-logo">
+                            <div class="platform-stat-info">
+                                <span class="platform-stat-value" id="weeklyGojek">Rp 0</span>
+                                <span class="platform-stat-orders" id="weeklyGojekOrders">0 order</span>
+                            </div>
+                        </div>
+                        <div class="platform-stat grab">
+                            <img src="grab-logo.png" alt="Grab" class="platform-stat-logo">
+                            <div class="platform-stat-info">
+                                <span class="platform-stat-value" id="weeklyGrab">Rp 0</span>
+                                <span class="platform-stat-orders" id="weeklyGrabOrders">0 order</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Weekly Daily Breakdown -->
+                    <div class="daily-breakdown" id="weeklyDailyBreakdown"></div>
+                </div>
+
+                <!-- Monthly Overview -->
+                <div class="monthly-section" id="monthlyOverviewSection" style="display: none;">
+                    <div class="section-header">
+                        <h3 id="monthlyHeader">Bulan Ini</h3>
+                        <div class="month-nav">
+                            <button class="nav-date-btn" onclick="navigateMonth(-1)">◀</button>
+                            <span id="monthLabel">Januari 2026</span>
+                            <button class="nav-date-btn" onclick="navigateMonth(1)">▶</button>
+                        </div>
+                    </div>
+                    <div class="monthly-stats">
+                        <div class="month-stat">
+                            <span class="stat-label">Total Pendapatan</span>
+                            <span class="stat-value" id="monthlyIncome">Rp 0</span>
+                        </div>
+                        <div class="month-stat">
+                            <span class="stat-label">Total Order</span>
+                            <span class="stat-value" id="monthlyOrders">0</span>
+                        </div>
+                        <div class="month-stat">
+                            <span class="stat-label">Pengeluaran</span>
+                            <span class="stat-value expense" id="monthlyExpense">Rp 0</span>
+                        </div>
+                        <div class="month-stat">
+                            <span class="stat-label">Pendapatan Bersih</span>
+                            <span class="stat-value net" id="monthlyNet">Rp 0</span>
+                        </div>
+                    </div>
+                    <!-- Monthly Platform Breakdown -->
+                    <div class="platform-breakdown">
+                        <div class="platform-stat gojek">
+                            <img src="gojek-logo.png" alt="Gojek" class="platform-stat-logo">
+                            <div class="platform-stat-info">
+                                <span class="platform-stat-value" id="monthlyGojek">Rp 0</span>
+                                <span class="platform-stat-orders" id="monthlyGojekOrders">0 order</span>
+                            </div>
+                        </div>
+                        <div class="platform-stat grab">
+                            <img src="grab-logo.png" alt="Grab" class="platform-stat-logo">
+                            <div class="platform-stat-info">
+                                <span class="platform-stat-value" id="monthlyGrab">Rp 0</span>
+                                <span class="platform-stat-orders" id="monthlyGrabOrders">0 order</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Monthly Weekly Breakdown -->
+                    <div class="weekly-breakdown" id="monthlyWeeklyBreakdown"></div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="recent-section">
+                    <div class="section-header">
+                        <h3 id="activityHeader">Aktivitas Hari Ini</h3>
+                        <a href="#" onclick="switchPage('pendapatan'); return false;">Lihat Semua</a>
+                    </div>
+                    <div class="recent-list" id="recentList">
+                        <div class="empty-state">
+                            <span class="empty-icon">📝</span>
+                            <p>Belum ada data</p>
+                            <button class="btn btn-primary" onclick="switchPage('pendapatan')">Tambah Pendapatan</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PENDAPATAN -->
+            <section id="pendapatanSection" class="content-section" style="display:none;">
+                <div class="page-header">
+                    <h2>Input Pendapatan</h2>
+                    <p class="page-subtitle">Catat pendapatan harian dari Gojek & Grab</p>
+                </div>
+
+                <!-- Quick Add -->
+                <div class="quick-add-section">
+                    <div class="form-card">
+                        <h3>Tambah Pendapatan</h3>
+                        <form id="incomeForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Platform</label>
+                                    <div class="platform-selector">
+                                        <label class="platform-option gojek">
+                                            <input type="radio" name="platform" value="gojek" checked>
+                                            <span class="platform-btn">
+                                                <img src="gojek-logo.png" alt="Gojek" class="platform-logo-img-small">
+                                                Gojek
+                                            </span>
+                                        </label>
+                                        <label class="platform-option grab">
+                                            <input type="radio" name="platform" value="grab">
+                                            <span class="platform-btn">
+                                                <img src="grab-logo.png" alt="Grab" class="platform-logo-img-small">
+                                                Grab
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tanggal</label>
+                                    <input type="date" id="incomeDate" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Pendapatan (Rp)</label>
+                                    <input type="number" id="incomeAmount" placeholder="150000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Jumlah Order</label>
+                                    <input type="number" id="incomeOrders" placeholder="10" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Bonus/Insentif (Rp)</label>
+                                    <input type="number" id="incomeBonus" placeholder="0" value="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Catatan</label>
+                                    <input type="text" id="incomeNote" placeholder="Opsional">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Simpan Pendapatan</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Income List -->
+                <div class="list-section">
+                    <div class="section-header">
+                        <h3>Riwayat Pendapatan</h3>
+                        <div class="filter-group">
+                            <select id="incomeFilterMonth">
+                                <option value="">Semua Bulan</option>
+                            </select>
+                            <select id="incomeFilterPlatform">
+                                <option value="">Semua Platform</option>
+                                <option value="gojek">Gojek</option>
+                                <option value="grab">Grab</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="data-list" id="incomeList"></div>
+                </div>
+            </section>
+
+            <!-- PENGELUARAN -->
+            <section id="pengeluaranSection" class="content-section" style="display:none;">
+                <div class="page-header">
+                    <h2>Input Pengeluaran</h2>
+                    <p class="page-subtitle">Catat pengeluaran operasional harian</p>
+                </div>
+
+                <!-- Quick Add -->
+                <div class="quick-add-section">
+                    <div class="form-card">
+                        <h3>Tambah Pengeluaran</h3>
+                        <form id="expenseForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Kategori</label>
+                                    <select id="expenseCategory" required>
+                                        <option value="bensin">⛽ Bensin</option>
+                                        <option value="pulsa">📱 Pulsa/Data</option>
+                                        <option value="makan">🍜 Makan</option>
+                                        <option value="ngopi">☕ Ngopi</option>
+                                        <option value="service">🔧 Service Motor</option>
+                                        <option value="parkir">🅿️ Parkir</option>
+                                        <option value="lainnya">📦 Lainnya</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tanggal</label>
+                                    <input type="date" id="expenseDate" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Jumlah (Rp)</label>
+                                    <input type="number" id="expenseAmount" placeholder="20000" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Catatan</label>
+                                    <input type="text" id="expenseNote" placeholder="Opsional">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Simpan Pengeluaran</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Expense List -->
+                <div class="list-section">
+                    <div class="section-header">
+                        <h3>Riwayat Pengeluaran</h3>
+                        <div class="filter-group">
+                            <select id="expenseFilterMonth">
+                                <option value="">Semua Bulan</option>
+                            </select>
+                            <select id="expenseFilterCategory">
+                                <option value="">Semua Kategori</option>
+                                <option value="bensin">Bensin</option>
+                                <option value="pulsa">Pulsa/Data</option>
+                                <option value="makan">Makan</option>
+                                <option value="ngopi">Ngopi</option>
+                                <option value="service">Service</option>
+                                <option value="parkir">Parkir</option>
+                                <option value="lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="data-list" id="expenseList"></div>
+                </div>
+            </section>
+
+            <!-- REKAP -->
+            <section id="rekapSection" class="content-section" style="display:none;">
+                <div class="page-header">
+                    <h2>Rekap Pendapatan</h2>
+                    <p class="page-subtitle">Ringkasan pendapatan per periode</p>
+                </div>
+
+                <!-- Period Selector -->
+                <div class="period-selector">
+                    <button class="period-btn active" data-period="daily">Harian</button>
+                    <button class="period-btn" data-period="weekly">Mingguan</button>
+                    <button class="period-btn" data-period="monthly">Bulanan</button>
+                </div>
+
+                <!-- Month/Week Selector -->
+                <div class="date-selector">
+                    <select id="rekapMonth">
+                        <option value="">Pilih Bulan</option>
+                    </select>
+                    <select id="rekapYear">
+                        <option value="">Pilih Tahun</option>
+                    </select>
+                </div>
+
+                <!-- Rekap Summary -->
+                <div class="rekap-summary">
+                    <div class="rekap-card gojek">
+                        <div class="rekap-header">
+                            <img src="gojek-logo.png" alt="Gojek" class="rekap-logo">
+                        </div>
+                        <div class="rekap-stats">
+                            <div class="rekap-stat">
+                                <span class="label">Pendapatan</span>
+                                <span class="value" id="rekapGojekIncome">Rp 0</span>
+                            </div>
+                            <div class="rekap-stat">
+                                <span class="label">Order</span>
+                                <span class="value" id="rekapGojekOrders">0</span>
+                            </div>
+                            <div class="rekap-stat">
+                                <span class="label">Bonus</span>
+                                <span class="value" id="rekapGojekBonus">Rp 0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rekap-card grab">
+                        <div class="rekap-header">
+                            <img src="grab-logo.png" alt="Grab" class="rekap-logo">
+                        </div>
+                        <div class="rekap-stats">
+                            <div class="rekap-stat">
+                                <span class="label">Pendapatan</span>
+                                <span class="value" id="rekapGrabIncome">Rp 0</span>
+                            </div>
+                            <div class="rekap-stat">
+                                <span class="label">Order</span>
+                                <span class="value" id="rekapGrabOrders">0</span>
+                            </div>
+                            <div class="rekap-stat">
+                                <span class="label">Bonus</span>
+                                <span class="value" id="rekapGrabBonus">Rp 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Summary -->
+                <div class="total-summary">
+                    <div class="total-row">
+                        <span>Total Pendapatan</span>
+                        <strong id="rekapTotalIncome">Rp 0</strong>
+                    </div>
+                    <div class="total-row">
+                        <span>Total Order</span>
+                        <strong id="rekapTotalOrders">0</strong>
+                    </div>
+                    <div class="total-row">
+                        <span>Total Bonus</span>
+                        <strong id="rekapTotalBonus">Rp 0</strong>
+                    </div>
+                    <div class="total-row expense">
+                        <span>Total Pengeluaran</span>
+                        <strong id="rekapTotalExpense">Rp 0</strong>
+                    </div>
+                    <div class="total-row net">
+                        <span>Pendapatan Bersih</span>
+                        <strong id="rekapNetIncome">Rp 0</strong>
+                    </div>
+                </div>
+
+                <!-- Daily Breakdown -->
+                <div class="breakdown-section">
+                    <h3>Detail per Hari</h3>
+                    <div class="breakdown-table" id="rekapBreakdown"></div>
+                </div>
+            </section>
+
+            <!-- TARGET -->
+            <section id="targetSection" class="content-section" style="display:none;">
+                <div class="page-header">
+                    <h2>Target Pendapatan</h2>
+                    <p class="page-subtitle">Atur target harian, mingguan, dan bulanan</p>
+                </div>
+
+                <div class="target-settings">
+                    <div class="form-card">
+                        <h3>Pengaturan Target</h3>
+                        <form id="targetForm">
+                            <div class="form-group">
+                                <label>🎯 Target Harian (Rp)</label>
+                                <input type="number" id="targetDaily" placeholder="200000">
+                                <small>Target pendapatan bersih per hari</small>
+                            </div>
+                            <div class="form-group">
+                                <label>📅 Target Mingguan (Rp)</label>
+                                <input type="number" id="targetWeekly" placeholder="1400000">
+                                <small>Target pendapatan bersih per minggu</small>
+                            </div>
+                            <div class="form-group">
+                                <label>📆 Target Bulanan (Rp)</label>
+                                <input type="number" id="targetMonthly" placeholder="6000000">
+                                <small>Target pendapatan bersih per bulan</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Simpan Target</button>
+                        </form>
+                    </div>
+
+                    <!-- Target Progress Overview -->
+                    <div class="target-overview">
+                        <h3>Progress Target</h3>
+                        <div class="target-cards">
+                            <div class="target-card">
+                                <div class="target-card-header">
+                                    <span class="target-label">Hari Ini</span>
+                                    <span class="target-date" id="targetTodayDate">-</span>
+                                </div>
+                                <div class="target-card-body">
+                                    <div class="target-progress-ring" id="dailyRing">
+                                        <span class="ring-percent" id="dailyPercent">0%</span>
+                                    </div>
+                                    <div class="target-detail">
+                                        <span class="current" id="dailyCurrent">Rp 0</span>
+                                        <span class="goal">/ <span id="dailyGoal">Rp 0</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="target-card">
+                                <div class="target-card-header">
+                                    <span class="target-label">Minggu Ini</span>
+                                    <span class="target-date" id="targetWeekDate">-</span>
+                                </div>
+                                <div class="target-card-body">
+                                    <div class="target-progress-ring" id="weeklyRing">
+                                        <span class="ring-percent" id="weeklyPercent">0%</span>
+                                    </div>
+                                    <div class="target-detail">
+                                        <span class="current" id="weeklyCurrent">Rp 0</span>
+                                        <span class="goal">/ <span id="weeklyGoal">Rp 0</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="target-card">
+                                <div class="target-card-header">
+                                    <span class="target-label">Bulan Ini</span>
+                                    <span class="target-date" id="targetMonthDate">-</span>
+                                </div>
+                                <div class="target-card-body">
+                                    <div class="target-progress-ring" id="monthlyRing">
+                                        <span class="ring-percent" id="monthlyPercent">0%</span>
+                                    </div>
+                                    <div class="target-detail">
+                                        <span class="current" id="monthlyCurrent">Rp 0</span>
+                                        <span class="goal">/ <span id="monthlyGoal">Rp 0</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast"></div>
+
+    <!-- EDIT MODAL -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeEditModal()">&times;</span>
+            <h3 id="editModalTitle">Edit Data</h3>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <input type="hidden" id="editType">
+                <div id="editFormContent"></div>
+                <button type="submit" class="btn btn-primary btn-block">Simpan Perubahan</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
