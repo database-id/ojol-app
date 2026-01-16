@@ -40,15 +40,13 @@
         <main class="main-content">
             <!-- DASHBOARD -->
             <section id="dashboardSection" class="content-section">
-                <!-- Header with Period Tabs -->
+                <!-- Header -->
                 <div class="dashboard-header">
-                    <div class="header-top">
-                        <h2>Dashboard</h2>
-                        <div class="period-tabs">
-                            <button class="period-tab active" data-view="daily" onclick="switchDashboardView('daily')">Harian</button>
-                            <button class="period-tab" data-view="weekly" onclick="switchDashboardView('weekly')">Mingguan</button>
-                            <button class="period-tab" data-view="monthly" onclick="switchDashboardView('monthly')">Bulanan</button>
-                        </div>
+                    <h2>Dashboard</h2>
+                    <div class="period-tabs">
+                        <button class="period-tab active" data-view="daily" onclick="switchDashboardView('daily')">Harian</button>
+                        <button class="period-tab" data-view="weekly" onclick="switchDashboardView('weekly')">Mingguan</button>
+                        <button class="period-tab" data-view="monthly" onclick="switchDashboardView('monthly')">Bulanan</button>
                     </div>
                     <div class="date-navigator" id="dateNavigator">
                         <button class="nav-btn" onclick="navigateDate(-1)">‹</button>
@@ -126,7 +124,8 @@
                                 <span class="qs-label">Pengeluaran</span>
                                 <span class="qs-value expense" id="statExpense">Rp 0</span>
                             </div>
-                            <div class="quick-stat-item">
+                            <div class="qs-divider"></div>
+                            <div class="quick-stat-item total-row">
                                 <span class="qs-label">Bersih</span>
                                 <span class="qs-value" id="statNet">Rp 0</span>
                             </div>

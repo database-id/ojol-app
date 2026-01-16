@@ -493,6 +493,26 @@ body {
     white-space: nowrap;
 }
 
+.qs-value.income {
+    color: var(--gojek);
+}
+
+.qs-value.expense {
+    color: var(--expense);
+}
+
+.qs-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0;
+}
+
+.quick-stat-item.total-row .qs-label,
+.quick-stat-item.total-row .qs-value {
+    font-weight: 700;
+    font-size: 14px;
+}
+
 .qs-link {
     display: block;
     margin-top: 12px;
