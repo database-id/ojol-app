@@ -315,20 +315,21 @@ function navigateMonth(offset) {
 function updateDashboard() {
     // Initialize date picker
     document.getElementById('dashboardDate').value = selectedDate;
-    document.getElementById('currentDate').textContent = formatDate(selectedDate);
 
     let summary, target, targetLabel;
 
     if (currentDashboardView === 'daily') {
         // Daily view
+        document.getElementById('currentDate').textContent = formatDate(selectedDate);
         const dayIncomes = getIncomeByDate(selectedDate);
         const dayExpenses = getExpenseByDate(selectedDate);
         summary = calculateSummary(dayIncomes, dayExpenses);
         target = getDailyTarget(selectedDate);
         targetLabel = isWeekend(selectedDate) ? 'Target Weekend' : 'Target Hari Kerja';
     } else if (currentDashboardView === 'weekly') {
-        // Weekly view
+        // Weekly view - show week range
         const weekRange = getWeekRangeFromDate(selectedDate);
+        document.getElementById('currentDate').textContent = `${formatDateShort(weekRange.start)} - ${formatDateShort(weekRange.end)}`;
         const weekIncomes = getIncomeByDateRange(weekRange.start, weekRange.end);
         const weekExpenses = getExpenseByDateRange(weekRange.start, weekRange.end);
         summary = calculateSummary(weekIncomes, weekExpenses);
@@ -720,7 +721,9 @@ function getWeekRangeFromDate(dateStr) {
 // Navigate to previous/next date
 function navigateDate(offset) {
     const date = new Date(selectedDate);
-    date.setDate(date.getDate() + offset);
+    // For weekly view, navigate by 7 days
+    const days = currentDashboardView === 'weekly' ? offset * 7 : offset;
+    date.setDate(date.getDate() + days);
     selectedDate = date.toISOString().split('T')[0];
     updateDashboard();
 }
