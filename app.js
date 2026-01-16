@@ -353,10 +353,8 @@ function updateDashboard() {
     document.getElementById('summaryGrab').textContent = formatRupiah(summary.grab.total);
 
     // Update target progress
-    const targetPercent = target > 0 ? (summary.netIncome / target) * 100 : 0;
+    const targetPercent = target > 0 ? (summary.totalIncome / target) * 100 : 0;
     document.getElementById('chartTitle').textContent = targetLabel;
-    document.getElementById('targetCurrent').textContent = formatRupiah(summary.netIncome);
-    document.getElementById('targetGoal').textContent = formatRupiah(target);
     document.getElementById('targetPercent').textContent = `${Math.round(targetPercent)}%`;
 
     // Update chart
