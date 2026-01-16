@@ -254,7 +254,6 @@ function switchPage(pageName) {
     if (pageName === 'dashboard') updateDashboard();
     else if (pageName === 'pendapatan') loadIncomeList();
     else if (pageName === 'pengeluaran') loadExpenseList();
-    else if (pageName === 'rekap') loadRekap();
     else if (pageName === 'target') loadTargetPage();
 }
 
@@ -889,91 +888,6 @@ function confirmDeleteExpense(id) {
     }
 }
 
-// ==================== REKAP PAGE ====================
-let currentPeriod = 'daily';
-
-function loadRekap() {
-    const year = parseInt(document.getElementById('rekapYear').value) || new Date().getFullYear();
-    const month = parseInt(document.getElementById('rekapMonth').value) || new Date().getMonth() + 1;
-
-    const { start, end } = getMonthRange(year, month);
-    const incomes = getIncomeByDateRange(start, end);
-    const expenses = getExpenseByDateRange(start, end);
-    const summary = calculateSummary(incomes, expenses);
-
-    // Update summary cards
-    document.getElementById('rekapGojekIncome').textContent = formatRupiah(summary.gojek.total);
-    document.getElementById('rekapGojekOrders').textContent = summary.gojek.orders;
-    document.getElementById('rekapGojekBonus').textContent = formatRupiah(summary.gojek.bonus);
-
-    document.getElementById('rekapGrabIncome').textContent = formatRupiah(summary.grab.total);
-    document.getElementById('rekapGrabOrders').textContent = summary.grab.orders;
-    document.getElementById('rekapGrabBonus').textContent = formatRupiah(summary.grab.bonus);
-
-    document.getElementById('rekapTotalIncome').textContent = formatRupiah(summary.totalIncome);
-    document.getElementById('rekapTotalOrders').textContent = summary.totalOrders;
-    document.getElementById('rekapTotalBonus').textContent = formatRupiah(summary.totalBonus);
-    document.getElementById('rekapTotalExpense').textContent = formatRupiah(summary.totalExpense);
-    document.getElementById('rekapNetIncome').textContent = formatRupiah(summary.netIncome);
-
-    // Generate breakdown
-    generateBreakdown(year, month);
-}
-
-function generateBreakdown(year, month) {
-    const { start, end } = getMonthRange(year, month);
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-
-    const breakdownData = [];
-    const currentDate = new Date(startDate);
-
-    while (currentDate <= endDate) {
-        const dateStr = currentDate.toISOString().split('T')[0];
-        const dayIncomes = getIncomeByDate(dateStr);
-        const dayExpenses = getExpenseByDate(dateStr);
-
-        if (dayIncomes.length > 0 || dayExpenses.length > 0) {
-            const daySummary = calculateSummary(dayIncomes, dayExpenses);
-            breakdownData.push({
-                date: dateStr,
-                gojek: daySummary.gojek.total,
-                grab: daySummary.grab.total,
-                expense: daySummary.totalExpense,
-                net: daySummary.netIncome
-            });
-        }
-
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    const container = document.getElementById('rekapBreakdown');
-
-    if (breakdownData.length === 0) {
-        container.innerHTML = '<div class="empty-state"><p>Belum ada data untuk periode ini</p></div>';
-        return;
-    }
-
-    container.innerHTML = `
-        <div class="breakdown-row header">
-            <span>Tanggal</span>
-            <span>Gojek</span>
-            <span>Grab</span>
-            <span>Pengeluaran</span>
-            <span>Bersih</span>
-        </div>
-        ${breakdownData.reverse().map(row => `
-            <div class="breakdown-row">
-                <span>${formatDateShort(row.date)}</span>
-                <span class="gojek-val">${formatRupiah(row.gojek)}</span>
-                <span class="grab-val">${formatRupiah(row.grab)}</span>
-                <span style="color: var(--danger)">-${formatRupiah(row.expense)}</span>
-                <span class="total-val" style="color: ${row.net >= 0 ? 'var(--success)' : 'var(--danger)'}">${formatRupiah(row.net)}</span>
-            </div>
-        `).join('')}
-    `;
-}
-
 // ==================== TARGET PAGE ====================
 function loadTargetPage() {
     const target = getTarget();
@@ -1100,7 +1014,7 @@ function initFilters() {
         months.push({ value, label });
     }
 
-    const monthSelects = ['incomeFilterMonth', 'expenseFilterMonth', 'rekapMonth'];
+    const monthSelects = ['incomeFilterMonth', 'expenseFilterMonth'];
     monthSelects.forEach(id => {
         const select = document.getElementById(id);
         if (select) {
@@ -1114,26 +1028,6 @@ function initFilters() {
             });
         }
     });
-
-    // Year selector
-    const yearSelect = document.getElementById('rekapYear');
-    if (yearSelect) {
-        const currentYear = now.getFullYear();
-        yearSelect.innerHTML = '<option value="">Pilih Tahun</option>';
-        for (let y = currentYear; y >= currentYear - 2; y--) {
-            const option = document.createElement('option');
-            option.value = y;
-            option.textContent = y;
-            if (y === currentYear) option.selected = true;
-            yearSelect.appendChild(option);
-        }
-    }
-
-    // Set default month for rekap
-    const rekapMonth = document.getElementById('rekapMonth');
-    if (rekapMonth && rekapMonth.options.length > 1) {
-        rekapMonth.selectedIndex = 1;
-    }
 }
 
 // ==================== EVENT LISTENERS ====================
@@ -1218,18 +1112,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('incomeFilterPlatform').addEventListener('change', loadIncomeList);
     document.getElementById('expenseFilterMonth').addEventListener('change', loadExpenseList);
     document.getElementById('expenseFilterCategory').addEventListener('change', loadExpenseList);
-    document.getElementById('rekapMonth').addEventListener('change', loadRekap);
-    document.getElementById('rekapYear').addEventListener('change', loadRekap);
-
-    // Period selector
-    document.querySelectorAll('.period-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            currentPeriod = this.dataset.period;
-            loadRekap();
-        });
-    });
 
     // Edit form
     document.getElementById('editForm').addEventListener('submit', saveEdit);

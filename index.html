@@ -27,9 +27,6 @@
                 <li class="nav-item" data-page="pengeluaran">
                     <span class="icon">💸</span> Pengeluaran
                 </li>
-                <li class="nav-item" data-page="rekap">
-                    <span class="icon">📋</span> Rekap
-                </li>
                 <li class="nav-item" data-page="target">
                     <span class="icon">🎯</span> Target
                 </li>
@@ -414,103 +411,6 @@
                         </div>
                     </div>
                     <div class="data-list" id="expenseList"></div>
-                </div>
-            </section>
-
-            <!-- REKAP -->
-            <section id="rekapSection" class="content-section" style="display:none;">
-                <div class="page-header">
-                    <h2>Rekap Pendapatan</h2>
-                    <p class="page-subtitle">Ringkasan pendapatan per periode</p>
-                </div>
-
-                <!-- Period Selector -->
-                <div class="period-selector">
-                    <button class="period-btn active" data-period="daily">Harian</button>
-                    <button class="period-btn" data-period="weekly">Mingguan</button>
-                    <button class="period-btn" data-period="monthly">Bulanan</button>
-                </div>
-
-                <!-- Month/Week Selector -->
-                <div class="date-selector">
-                    <select id="rekapMonth">
-                        <option value="">Pilih Bulan</option>
-                    </select>
-                    <select id="rekapYear">
-                        <option value="">Pilih Tahun</option>
-                    </select>
-                </div>
-
-                <!-- Rekap Summary -->
-                <div class="rekap-summary">
-                    <div class="rekap-card gojek">
-                        <div class="rekap-header">
-                            <img src="gojek-logo.png" alt="Gojek" class="rekap-logo">
-                        </div>
-                        <div class="rekap-stats">
-                            <div class="rekap-stat">
-                                <span class="label">Pendapatan</span>
-                                <span class="value" id="rekapGojekIncome">Rp 0</span>
-                            </div>
-                            <div class="rekap-stat">
-                                <span class="label">Order</span>
-                                <span class="value" id="rekapGojekOrders">0</span>
-                            </div>
-                            <div class="rekap-stat">
-                                <span class="label">Bonus</span>
-                                <span class="value" id="rekapGojekBonus">Rp 0</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="rekap-card grab">
-                        <div class="rekap-header">
-                            <img src="grab-logo.png" alt="Grab" class="rekap-logo">
-                        </div>
-                        <div class="rekap-stats">
-                            <div class="rekap-stat">
-                                <span class="label">Pendapatan</span>
-                                <span class="value" id="rekapGrabIncome">Rp 0</span>
-                            </div>
-                            <div class="rekap-stat">
-                                <span class="label">Order</span>
-                                <span class="value" id="rekapGrabOrders">0</span>
-                            </div>
-                            <div class="rekap-stat">
-                                <span class="label">Bonus</span>
-                                <span class="value" id="rekapGrabBonus">Rp 0</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Total Summary -->
-                <div class="total-summary">
-                    <div class="total-row">
-                        <span>Total Pendapatan</span>
-                        <strong id="rekapTotalIncome">Rp 0</strong>
-                    </div>
-                    <div class="total-row">
-                        <span>Total Order</span>
-                        <strong id="rekapTotalOrders">0</strong>
-                    </div>
-                    <div class="total-row">
-                        <span>Total Bonus</span>
-                        <strong id="rekapTotalBonus">Rp 0</strong>
-                    </div>
-                    <div class="total-row expense">
-                        <span>Total Pengeluaran</span>
-                        <strong id="rekapTotalExpense">Rp 0</strong>
-                    </div>
-                    <div class="total-row net">
-                        <span>Pendapatan Bersih</span>
-                        <strong id="rekapNetIncome">Rp 0</strong>
-                    </div>
-                </div>
-
-                <!-- Daily Breakdown -->
-                <div class="breakdown-section">
-                    <h3>Detail per Hari</h3>
-                    <div class="breakdown-table" id="rekapBreakdown"></div>
                 </div>
             </section>
 
