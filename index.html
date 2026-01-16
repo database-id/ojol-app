@@ -7,6 +7,14 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Loading...</p>
+        </div>
+    </div>
+
     <!-- LOGIN PAGE -->
     <div id="loginPage" class="login-page">
         <div class="login-container">
@@ -15,18 +23,44 @@
                 <h1>Ojol Performance</h1>
                 <p>Gojek & Grab Tracker</p>
             </div>
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" id="loginUsername" placeholder="Enter username" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter password" required>
-                </div>
-                <div id="loginError" class="login-error"></div>
-                <button type="submit" class="btn btn-primary btn-block">Login</button>
-            </form>
+
+            <!-- Login Form -->
+            <div id="loginFormContainer">
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="loginUsername" placeholder="Enter username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter password" required>
+                    </div>
+                    <div id="loginError" class="login-error"></div>
+                    <button type="submit" class="btn btn-primary btn-block">Login</button>
+                </form>
+                <p class="auth-switch">Don't have an account? <a href="#" onclick="showRegister(); return false;">Register</a></p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerFormContainer" style="display: none;">
+                <form id="registerForm" class="login-form">
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="regUsername" placeholder="Choose username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="regPassword" placeholder="Choose password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="regConfirmPassword" placeholder="Confirm password" required>
+                    </div>
+                    <div id="registerError" class="login-error"></div>
+                    <button type="submit" class="btn btn-primary btn-block">Register</button>
+                </form>
+                <p class="auth-switch">Already have an account? <a href="#" onclick="showLoginForm(); return false;">Login</a></p>
+            </div>
         </div>
     </div>
 

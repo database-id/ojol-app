@@ -1,15 +1,83 @@
-// ==================== LOGIN SYSTEM ====================
-const AUTH = {
-    USERNAME: 'wafi',
-    PASSWORD: 'wafi123',
-    SESSION_KEY: 'ojol_logged_in'
+// ==================== GOOGLE SHEETS API ====================
+const API_URL = 'https://script.google.com/macros/s/AKfycbwFg1stRNb0i0wFlNZf8VLY_UJZ_WkCl9OyM2-apGU3G5QVBOA4VWM68CabbWvRZ7Zyqw/exec';
+
+// LocalStorage Keys (for caching and session)
+const STORAGE_KEYS = {
+    CURRENT_USER: 'ojol_current_user',
+    CACHED_INCOME: 'ojol_cached_income',
+    CACHED_EXPENSE: 'ojol_cached_expense',
+    CACHED_TARGET: 'ojol_cached_target'
 };
+
+// In-memory data
+let incomeData = [];
+let expenseData = [];
+let targetData = {
+    weekday: 30000,
+    weekend: 70000,
+    weekly: 290000,
+    monthly: 1160000
+};
+
+// ==================== API HELPER ====================
+async function apiCall(action, params = {}) {
+    const url = new URL(API_URL);
+    url.searchParams.append('action', action);
+    Object.keys(params).forEach(key => {
+        url.searchParams.append(key, params[key]);
+    });
+
+    try {
+        const response = await fetch(url.toString());
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('API Error:', error);
+        showToast('Connection error. Please try again.', 'error');
+        return { success: false, error: error.message };
+    }
+}
+
+// ==================== LOADING OVERLAY ====================
+function showLoading(message = 'Loading...') {
+    const overlay = document.getElementById('loadingOverlay');
+    const text = document.getElementById('loadingText');
+    if (overlay) {
+        if (text) text.textContent = message;
+        overlay.style.display = 'flex';
+    }
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+}
+
+// ==================== LOGIN SYSTEM ====================
+function getCurrentUser() {
+    const user = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+    return user ? JSON.parse(user) : null;
+}
+
+function setCurrentUser(user) {
+    localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+}
+
+function clearCurrentUser() {
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+    localStorage.removeItem(STORAGE_KEYS.CACHED_INCOME);
+    localStorage.removeItem(STORAGE_KEYS.CACHED_EXPENSE);
+    localStorage.removeItem(STORAGE_KEYS.CACHED_TARGET);
+}
 
 // Check if user is logged in
 function checkLogin() {
-    const isLoggedIn = sessionStorage.getItem(AUTH.SESSION_KEY);
-    if (isLoggedIn === 'true') {
+    const user = getCurrentUser();
+    if (user) {
         showApp();
+        loadAllData();
     } else {
         showLogin();
     }
@@ -27,53 +95,156 @@ function showApp() {
     document.getElementById('appContainer').style.display = 'flex';
 }
 
+// Show register form
+function showRegister() {
+    document.getElementById('loginFormContainer').style.display = 'none';
+    document.getElementById('registerFormContainer').style.display = 'block';
+}
+
+// Show login form
+function showLoginForm() {
+    document.getElementById('registerFormContainer').style.display = 'none';
+    document.getElementById('loginFormContainer').style.display = 'block';
+}
+
 // Handle login
-function handleLogin(e) {
+async function handleLogin(e) {
     e.preventDefault();
-    const username = document.getElementById('loginUsername').value;
+    const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
     const errorEl = document.getElementById('loginError');
 
-    if (username === AUTH.USERNAME && password === AUTH.PASSWORD) {
-        sessionStorage.setItem(AUTH.SESSION_KEY, 'true');
+    if (!username || !password) {
+        errorEl.textContent = 'Please fill all fields';
+        return;
+    }
+
+    showLoading('Logging in...');
+
+    const result = await apiCall('login', { username, password });
+
+    hideLoading();
+
+    if (result.success) {
+        setCurrentUser(result.user);
         errorEl.textContent = '';
         showApp();
-        initFilters();
-        updateDashboard();
+        loadAllData();
+        showToast('Login successful!', 'success');
     } else {
-        errorEl.textContent = 'Invalid username or password';
+        errorEl.textContent = result.error || 'Login failed';
+    }
+}
+
+// Handle register
+async function handleRegister(e) {
+    e.preventDefault();
+    const username = document.getElementById('regUsername').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const confirmPassword = document.getElementById('regConfirmPassword').value;
+    const errorEl = document.getElementById('registerError');
+
+    if (!username || !password) {
+        errorEl.textContent = 'Please fill all fields';
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        errorEl.textContent = 'Passwords do not match';
+        return;
+    }
+
+    if (password.length < 4) {
+        errorEl.textContent = 'Password must be at least 4 characters';
+        return;
+    }
+
+    showLoading('Creating account...');
+
+    const result = await apiCall('register', { username, password });
+
+    hideLoading();
+
+    if (result.success) {
+        errorEl.textContent = '';
+        showToast('Registration successful! Please login.', 'success');
+        showLoginForm();
+        document.getElementById('loginUsername').value = username;
+    } else {
+        errorEl.textContent = result.error || 'Registration failed';
     }
 }
 
 // Handle logout
 function logout() {
     if (confirm('Are you sure you want to logout?')) {
-        sessionStorage.removeItem(AUTH.SESSION_KEY);
+        clearCurrentUser();
+        incomeData = [];
+        expenseData = [];
         showLogin();
         document.getElementById('loginUsername').value = '';
         document.getElementById('loginPassword').value = '';
+        showToast('Logged out successfully', 'success');
     }
 }
 
-// ==================== DATA STORAGE ====================
-const STORAGE_KEYS = {
-    INCOME: 'ojol_income',
-    EXPENSE: 'ojol_expense',
-    TARGET: 'ojol_target'
-};
+// ==================== LOAD ALL DATA ====================
+async function loadAllData() {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    showLoading('Loading data...');
+
+    try {
+        // Load from cache first for instant display
+        const cachedIncome = localStorage.getItem(STORAGE_KEYS.CACHED_INCOME);
+        const cachedExpense = localStorage.getItem(STORAGE_KEYS.CACHED_EXPENSE);
+        const cachedTarget = localStorage.getItem(STORAGE_KEYS.CACHED_TARGET);
+
+        if (cachedIncome) incomeData = JSON.parse(cachedIncome);
+        if (cachedExpense) expenseData = JSON.parse(cachedExpense);
+        if (cachedTarget) targetData = JSON.parse(cachedTarget);
+
+        // Initialize filters and update UI with cached data
+        initFilters();
+        updateDashboard();
+
+        // Load fresh data from API
+        const [incomeResult, expenseResult, targetResult] = await Promise.all([
+            apiCall('getIncome', { username: user.username }),
+            apiCall('getExpense', { username: user.username }),
+            apiCall('getTarget', { username: user.username })
+        ]);
+
+        if (incomeResult.success) {
+            incomeData = incomeResult.income || [];
+            localStorage.setItem(STORAGE_KEYS.CACHED_INCOME, JSON.stringify(incomeData));
+        }
+
+        if (expenseResult.success) {
+            expenseData = expenseResult.expense || [];
+            localStorage.setItem(STORAGE_KEYS.CACHED_EXPENSE, JSON.stringify(expenseData));
+        }
+
+        if (targetResult.success && targetResult.target) {
+            targetData = targetResult.target;
+            localStorage.setItem(STORAGE_KEYS.CACHED_TARGET, JSON.stringify(targetData));
+        }
+
+        // Update UI with fresh data
+        updateDashboard();
+
+    } catch (error) {
+        console.error('Error loading data:', error);
+        showToast('Error loading data', 'error');
+    }
+
+    hideLoading();
+}
 
 // ==================== UTILITY FUNCTIONS ====================
 function formatRupiah(num) {
     return 'Rp ' + num.toLocaleString('id-ID');
-}
-
-function getStorage(key) {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : null;
-}
-
-function setStorage(key, data) {
-    localStorage.setItem(key, JSON.stringify(data));
 }
 
 function showToast(message, type = 'success') {
@@ -124,117 +295,204 @@ function getMonthRange(year, month) {
 
 // ==================== INCOME FUNCTIONS ====================
 function getIncome() {
-    return getStorage(STORAGE_KEYS.INCOME) || [];
-}
-
-function saveIncome(data) {
-    setStorage(STORAGE_KEYS.INCOME, data);
-}
-
-function addIncome(income) {
-    const incomes = getIncome();
-    income.id = Date.now();
-    income.createdAt = new Date().toISOString();
-    incomes.push(income);
-    saveIncome(incomes);
-    return income;
-}
-
-function updateIncome(id, data) {
-    const incomes = getIncome();
-    const index = incomes.findIndex(i => i.id === id);
-    if (index !== -1) {
-        incomes[index] = { ...incomes[index], ...data };
-        saveIncome(incomes);
-    }
-}
-
-function deleteIncome(id) {
-    let incomes = getIncome();
-    incomes = incomes.filter(i => i.id !== id);
-    saveIncome(incomes);
+    return incomeData;
 }
 
 function getIncomeByDate(date) {
-    return getIncome().filter(i => i.date === date);
+    return incomeData.filter(i => i.date === date);
 }
 
 function getIncomeByDateRange(startDate, endDate) {
-    return getIncome().filter(i => i.date >= startDate && i.date <= endDate);
+    return incomeData.filter(i => i.date >= startDate && i.date <= endDate);
 }
 
 function getIncomeByMonth(year, month) {
     const monthStr = `${year}-${String(month).padStart(2, '0')}`;
-    return getIncome().filter(i => i.date.startsWith(monthStr));
+    return incomeData.filter(i => i.date.startsWith(monthStr));
+}
+
+async function addIncome(income) {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    income.id = Date.now();
+    income.createdAt = new Date().toISOString();
+
+    showLoading('Saving...');
+
+    const result = await apiCall('addIncome', {
+        username: user.username,
+        income: JSON.stringify(income)
+    });
+
+    hideLoading();
+
+    if (result.success) {
+        incomeData.push(income);
+        localStorage.setItem(STORAGE_KEYS.CACHED_INCOME, JSON.stringify(incomeData));
+        return income;
+    } else {
+        showToast('Failed to save income', 'error');
+        return null;
+    }
+}
+
+async function updateIncome(id, data) {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    const index = incomeData.findIndex(i => i.id === id);
+    if (index !== -1) {
+        incomeData[index] = { ...incomeData[index], ...data };
+        localStorage.setItem(STORAGE_KEYS.CACHED_INCOME, JSON.stringify(incomeData));
+
+        // Sync to cloud (delete old, add new)
+        await apiCall('deleteIncome', { username: user.username, incomeId: id });
+        await apiCall('addIncome', {
+            username: user.username,
+            income: JSON.stringify(incomeData[index])
+        });
+    }
+}
+
+async function deleteIncome(id) {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    showLoading('Deleting...');
+
+    const result = await apiCall('deleteIncome', {
+        username: user.username,
+        incomeId: id
+    });
+
+    hideLoading();
+
+    if (result.success) {
+        incomeData = incomeData.filter(i => i.id !== id);
+        localStorage.setItem(STORAGE_KEYS.CACHED_INCOME, JSON.stringify(incomeData));
+    } else {
+        showToast('Failed to delete', 'error');
+    }
 }
 
 // ==================== EXPENSE FUNCTIONS ====================
 function getExpense() {
-    return getStorage(STORAGE_KEYS.EXPENSE) || [];
-}
-
-function saveExpense(data) {
-    setStorage(STORAGE_KEYS.EXPENSE, data);
-}
-
-function addExpense(expense) {
-    const expenses = getExpense();
-    expense.id = Date.now();
-    expense.createdAt = new Date().toISOString();
-    expenses.push(expense);
-    saveExpense(expenses);
-    return expense;
-}
-
-function updateExpense(id, data) {
-    const expenses = getExpense();
-    const index = expenses.findIndex(e => e.id === id);
-    if (index !== -1) {
-        expenses[index] = { ...expenses[index], ...data };
-        saveExpense(expenses);
-    }
-}
-
-function deleteExpense(id) {
-    let expenses = getExpense();
-    expenses = expenses.filter(e => e.id !== id);
-    saveExpense(expenses);
+    return expenseData;
 }
 
 function getExpenseByDate(date) {
-    return getExpense().filter(e => e.date === date);
+    return expenseData.filter(e => e.date === date);
 }
 
 function getExpenseByDateRange(startDate, endDate) {
-    return getExpense().filter(e => e.date >= startDate && e.date <= endDate);
+    return expenseData.filter(e => e.date >= startDate && e.date <= endDate);
 }
 
 function getExpenseByMonth(year, month) {
     const monthStr = `${year}-${String(month).padStart(2, '0')}`;
-    return getExpense().filter(e => e.date.startsWith(monthStr));
+    return expenseData.filter(e => e.date.startsWith(monthStr));
+}
+
+async function addExpense(expense) {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    expense.id = Date.now();
+    expense.createdAt = new Date().toISOString();
+
+    showLoading('Saving...');
+
+    const result = await apiCall('addExpense', {
+        username: user.username,
+        expense: JSON.stringify(expense)
+    });
+
+    hideLoading();
+
+    if (result.success) {
+        expenseData.push(expense);
+        localStorage.setItem(STORAGE_KEYS.CACHED_EXPENSE, JSON.stringify(expenseData));
+        return expense;
+    } else {
+        showToast('Failed to save expense', 'error');
+        return null;
+    }
+}
+
+async function updateExpense(id, data) {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    const index = expenseData.findIndex(e => e.id === id);
+    if (index !== -1) {
+        expenseData[index] = { ...expenseData[index], ...data };
+        localStorage.setItem(STORAGE_KEYS.CACHED_EXPENSE, JSON.stringify(expenseData));
+
+        // Sync to cloud
+        await apiCall('deleteExpense', { username: user.username, expenseId: id });
+        await apiCall('addExpense', {
+            username: user.username,
+            expense: JSON.stringify(expenseData[index])
+        });
+    }
+}
+
+async function deleteExpense(id) {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    showLoading('Deleting...');
+
+    const result = await apiCall('deleteExpense', {
+        username: user.username,
+        expenseId: id
+    });
+
+    hideLoading();
+
+    if (result.success) {
+        expenseData = expenseData.filter(e => e.id !== id);
+        localStorage.setItem(STORAGE_KEYS.CACHED_EXPENSE, JSON.stringify(expenseData));
+    } else {
+        showToast('Failed to delete', 'error');
+    }
 }
 
 // ==================== TARGET FUNCTIONS ====================
 function getTarget() {
-    return getStorage(STORAGE_KEYS.TARGET) || {
-        weekday: 30000,
-        weekend: 70000,
-        weekly: 290000,
-        monthly: 1160000
-    };
+    return targetData;
 }
 
-function saveTarget(target) {
-    setStorage(STORAGE_KEYS.TARGET, target);
+async function saveTarget(target) {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    showLoading('Saving target...');
+
+    const result = await apiCall('saveTarget', {
+        username: user.username,
+        target: JSON.stringify(target)
+    });
+
+    hideLoading();
+
+    if (result.success) {
+        targetData = target;
+        localStorage.setItem(STORAGE_KEYS.CACHED_TARGET, JSON.stringify(targetData));
+        return true;
+    } else {
+        showToast('Failed to save target', 'error');
+        return false;
+    }
 }
 
 // Get daily target based on day of week
 function getDailyTarget(dateStr) {
     const target = getTarget();
     const date = new Date(dateStr);
-    const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
+    const dayOfWeek = date.getDay();
 
-    // Weekend is Saturday (6) and Sunday (0)
     if (dayOfWeek === 0 || dayOfWeek === 6) {
         return target.weekend;
     }
@@ -248,16 +506,12 @@ function isWeekend(dateStr) {
     return dayOfWeek === 0 || dayOfWeek === 6;
 }
 
-// Auto-calculate weekly and monthly targets based on weekday/weekend
+// Auto-calculate weekly and monthly targets
 function autoCalculateTargets() {
     const weekday = parseInt(document.getElementById('targetWeekday').value) || 0;
     const weekend = parseInt(document.getElementById('targetWeekend').value) || 0;
-
-    // Weekly = 5 weekdays + 2 weekend days
     const weeklyTarget = (weekday * 5) + (weekend * 2);
     document.getElementById('targetWeekly').value = weeklyTarget;
-
-    // Monthly = approximately 4 weeks
     const monthlyTarget = weeklyTarget * 4;
     document.getElementById('targetMonthly').value = monthlyTarget;
 }
@@ -307,7 +561,6 @@ function switchPage(pageName) {
         }
     });
 
-    // Refresh data based on page
     if (pageName === 'dashboard') updateDashboard();
     else if (pageName === 'pendapatan') loadIncomeList();
     else if (pageName === 'pengeluaran') loadExpenseList();
@@ -315,22 +568,18 @@ function switchPage(pageName) {
 }
 
 // ==================== DASHBOARD ====================
-// Current selected date for dashboard
 let selectedDate = getToday();
-let currentDashboardView = 'daily'; // 'daily', 'weekly', 'monthly'
+let currentDashboardView = 'daily';
 let selectedMonth = new Date().getMonth() + 1;
 let selectedYear = new Date().getFullYear();
 
-// Open date picker when clicking date display
 function openDatePicker() {
     document.getElementById('dashboardDate').showPicker();
 }
 
-// Switch dashboard view (daily, weekly, monthly)
 function switchDashboardView(view) {
     currentDashboardView = view;
 
-    // Update tabs
     document.querySelectorAll('.period-tab').forEach(tab => {
         tab.classList.remove('active');
         if (tab.dataset.view === view) {
@@ -338,7 +587,6 @@ function switchDashboardView(view) {
         }
     });
 
-    // Show/hide navigators
     const dateNav = document.getElementById('dateNavigator');
     const monthNav = document.getElementById('monthNavigator');
 
@@ -356,7 +604,6 @@ function switchDashboardView(view) {
     updateDashboard();
 }
 
-// Navigate month for monthly view
 function navigateMonth(offset) {
     selectedMonth += offset;
     if (selectedMonth > 12) {
@@ -370,13 +617,11 @@ function navigateMonth(offset) {
 }
 
 function updateDashboard() {
-    // Initialize date picker
     document.getElementById('dashboardDate').value = selectedDate;
 
     let summary, target, targetLabel;
 
     if (currentDashboardView === 'daily') {
-        // Daily view
         document.getElementById('currentDate').textContent = formatDate(selectedDate);
         const dayIncomes = getIncomeByDate(selectedDate);
         const dayExpenses = getExpenseByDate(selectedDate);
@@ -384,7 +629,6 @@ function updateDashboard() {
         target = getDailyTarget(selectedDate);
         targetLabel = isWeekend(selectedDate) ? 'Weekend Target' : 'Weekday Target';
     } else if (currentDashboardView === 'weekly') {
-        // Weekly view - show week range
         const weekRange = getWeekRangeFromDate(selectedDate);
         document.getElementById('currentDate').textContent = `${formatDateShort(weekRange.start)} - ${formatDateShort(weekRange.end)}`;
         const weekIncomes = getIncomeByDateRange(weekRange.start, weekRange.end);
@@ -393,7 +637,6 @@ function updateDashboard() {
         target = getTarget().weekly;
         targetLabel = 'Weekly Target';
     } else if (currentDashboardView === 'monthly') {
-        // Monthly view
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         document.getElementById('monthLabel').textContent = `${monthNames[selectedMonth - 1]} ${selectedYear}`;
 
@@ -405,51 +648,41 @@ function updateDashboard() {
         targetLabel = 'Monthly Target';
     }
 
-    // Update summary cards
     document.getElementById('summaryGojek').textContent = formatRupiah(summary.gojek.total);
     document.getElementById('summaryGrab').textContent = formatRupiah(summary.grab.total);
 
-    // Update chart
     updateIncomeChart(summary, target);
 }
 
-// Update progress ring
 function updateIncomeChart(summary, target) {
     const totalIncome = summary.totalIncome;
 
-    // Calculate percentage
     const pct = target > 0 ? (totalIncome / target) * 100 : 0;
     const displayPct = Math.round(pct);
-    const ringPct = Math.min(100, pct); // Cap at 100% for visual
+    const ringPct = Math.min(100, pct);
 
-    // Update progress ring
     const ring = document.getElementById('progressRing');
     if (ring) {
         ring.style.background = `conic-gradient(var(--gojek) ${ringPct}%, var(--border) ${ringPct}%)`;
     }
 
-    // Update percentage text
     const pctEl = document.getElementById('progressPct');
     if (pctEl) pctEl.textContent = `${displayPct}%`;
 
-    // Update info values
     const targetEl = document.getElementById('targetValue');
     if (targetEl) targetEl.textContent = formatRupiah(target);
 
     const achievedEl = document.getElementById('achievedValue');
     if (achievedEl) achievedEl.textContent = formatRupiah(totalIncome);
 
-    // Update ringkasan
     updateRingkasan(summary);
 }
 
-// Update ringkasan panel
 function updateRingkasan(summary) {
     const totalIncome = summary.totalIncome || 0;
     const totalExpense = summary.totalExpense || 0;
     const netIncome = summary.netIncome || 0;
 
-    // Update DOM
     const incomeEl = document.getElementById('statIncome');
     const expenseEl = document.getElementById('statExpense');
     const netEl = document.getElementById('statNet');
@@ -459,7 +692,6 @@ function updateRingkasan(summary) {
     if (netEl) netEl.textContent = formatRupiah(netIncome);
 }
 
-// Format rupiah in short form (K for thousands)
 function formatRupiahShort(num) {
     if (num >= 1000000) {
         return (num / 1000000).toFixed(1) + 'jt';
@@ -469,296 +701,6 @@ function formatRupiahShort(num) {
     return num.toString();
 }
 
-// Load daily activity table
-function loadDailyTable(dateStr) {
-    const incomes = getIncomeByDate(dateStr);
-    const expenses = getExpenseByDate(dateStr);
-    const tbody = document.getElementById('activityTableBody');
-
-    if (incomes.length === 0 && expenses.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">No activity today</td></tr>';
-        return;
-    }
-
-    // Combine and sort by time
-    const gojekSummary = incomes.filter(i => i.platform === 'gojek').reduce((acc, i) => {
-        acc.total += i.amount;
-        acc.orders++;
-        return acc;
-    }, { total: 0, orders: 0 });
-
-    const grabSummary = incomes.filter(i => i.platform === 'grab').reduce((acc, i) => {
-        acc.total += i.amount;
-        acc.orders++;
-        return acc;
-    }, { total: 0, orders: 0 });
-
-    const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
-
-    let html = '';
-    if (gojekSummary.orders > 0) {
-        html += `
-            <tr>
-                <td>${formatDateShort(dateStr)}</td>
-                <td><div class="platform-cell"><img src="gojek-logo.png" class="platform-logo"> Gojek</div></td>
-                <td>${formatRupiah(gojekSummary.total)}</td>
-                <td>${gojekSummary.orders}</td>
-                <td>-</td>
-                <td class="amount-positive">${formatRupiah(gojekSummary.total)}</td>
-            </tr>
-        `;
-    }
-    if (grabSummary.orders > 0) {
-        html += `
-            <tr>
-                <td>${formatDateShort(dateStr)}</td>
-                <td><div class="platform-cell"><img src="grab-logo.png" class="platform-logo"> Grab</div></td>
-                <td>${formatRupiah(grabSummary.total)}</td>
-                <td>${grabSummary.orders}</td>
-                <td>-</td>
-                <td class="amount-positive">${formatRupiah(grabSummary.total)}</td>
-            </tr>
-        `;
-    }
-    if (totalExpense > 0) {
-        html += `
-            <tr>
-                <td>${formatDateShort(dateStr)}</td>
-                <td>💸 Expense</td>
-                <td>-</td>
-                <td>-</td>
-                <td class="amount-negative">-${formatRupiah(totalExpense)}</td>
-                <td class="amount-negative">-${formatRupiah(totalExpense)}</td>
-            </tr>
-        `;
-    }
-
-    tbody.innerHTML = html || '<tr><td colspan="6" class="empty-cell">No activity</td></tr>';
-}
-
-// Load weekly activity table
-function loadWeeklyTable(weekRange) {
-    const tbody = document.getElementById('activityTableBody');
-    const startDate = new Date(weekRange.start);
-    const endDate = new Date(weekRange.end);
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-    let html = '';
-    const currentDate = new Date(startDate);
-
-    while (currentDate <= endDate) {
-        const dateStr = currentDate.toISOString().split('T')[0];
-        const dayIncomes = getIncomeByDate(dateStr);
-        const dayExpenses = getExpenseByDate(dateStr);
-        const daySummary = calculateSummary(dayIncomes, dayExpenses);
-
-        const dayName = days[currentDate.getDay()];
-
-        html += `
-            <tr>
-                <td>${formatDateShort(dateStr)} (${dayName})</td>
-                <td>-</td>
-                <td>${formatRupiah(daySummary.totalIncome)}</td>
-                <td>${daySummary.totalOrders}</td>
-                <td class="amount-negative">${daySummary.totalExpense > 0 ? '-' + formatRupiah(daySummary.totalExpense) : '-'}</td>
-                <td class="${daySummary.netIncome >= 0 ? 'amount-positive' : 'amount-negative'}">${formatRupiah(daySummary.netIncome)}</td>
-            </tr>
-        `;
-
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    tbody.innerHTML = html || '<tr><td colspan="6" class="empty-cell">No activity</td></tr>';
-}
-
-// Load monthly activity table
-function loadMonthlyTable(monthRange) {
-    const tbody = document.getElementById('activityTableBody');
-    const startDate = new Date(monthRange.start);
-    const endDate = new Date(monthRange.end);
-
-    let html = '';
-    let weekNum = 1;
-    let currentWeekStart = new Date(startDate);
-    currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
-
-    while (currentWeekStart <= endDate) {
-        const weekEnd = new Date(currentWeekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-
-        const effectiveStart = new Date(Math.max(currentWeekStart.getTime(), startDate.getTime()));
-        const effectiveEnd = new Date(Math.min(weekEnd.getTime(), endDate.getTime()));
-
-        const weekStartStr = effectiveStart.toISOString().split('T')[0];
-        const weekEndStr = effectiveEnd.toISOString().split('T')[0];
-
-        const weekIncomes = getIncomeByDateRange(weekStartStr, weekEndStr);
-        const weekExpenses = getExpenseByDateRange(weekStartStr, weekEndStr);
-        const weekSummary = calculateSummary(weekIncomes, weekExpenses);
-
-        html += `
-            <tr>
-                <td>Week ${weekNum}</td>
-                <td>${formatDateShort(weekStartStr)} - ${formatDateShort(weekEndStr)}</td>
-                <td>${formatRupiah(weekSummary.totalIncome)}</td>
-                <td>${weekSummary.totalOrders}</td>
-                <td class="amount-negative">${weekSummary.totalExpense > 0 ? '-' + formatRupiah(weekSummary.totalExpense) : '-'}</td>
-                <td class="${weekSummary.netIncome >= 0 ? 'amount-positive' : 'amount-negative'}">${formatRupiah(weekSummary.netIncome)}</td>
-            </tr>
-        `;
-
-        currentWeekStart.setDate(currentWeekStart.getDate() + 7);
-        weekNum++;
-    }
-
-    tbody.innerHTML = html || '<tr><td colspan="6" class="empty-cell">No activity</td></tr>';
-}
-
-// Update weekly section with data (keep for compatibility)
-function updateWeeklySection() {
-    const weekRange = getWeekRangeFromDate(selectedDate);
-    const weekIncomes = getIncomeByDateRange(weekRange.start, weekRange.end);
-    const weekExpenses = getExpenseByDateRange(weekRange.start, weekRange.end);
-    const weekSummary = calculateSummary(weekIncomes, weekExpenses);
-
-    // Week range label
-    document.getElementById('weekRangeLabel').textContent = `${formatDateShort(weekRange.start)} - ${formatDateShort(weekRange.end)}`;
-
-    // Main stats
-    document.getElementById('weeklyIncome').textContent = formatRupiah(weekSummary.totalIncome);
-    document.getElementById('weeklyOrders').textContent = weekSummary.totalOrders;
-    document.getElementById('weeklyExpense').textContent = formatRupiah(weekSummary.totalExpense);
-    document.getElementById('weeklyNet').textContent = formatRupiah(weekSummary.netIncome);
-
-    // Platform breakdown
-    document.getElementById('weeklyGojek').textContent = formatRupiah(weekSummary.gojek.total);
-    document.getElementById('weeklyGojekOrders').textContent = `${weekSummary.gojek.orders} order`;
-    document.getElementById('weeklyGrab').textContent = formatRupiah(weekSummary.grab.total);
-    document.getElementById('weeklyGrabOrders').textContent = `${weekSummary.grab.orders} order`;
-
-    // Daily breakdown for the week
-    if (currentDashboardView === 'weekly') {
-        loadWeeklyDailyBreakdown(weekRange);
-    }
-}
-
-// Load daily breakdown for weekly view
-function loadWeeklyDailyBreakdown(weekRange) {
-    const container = document.getElementById('weeklyDailyBreakdown');
-    const startDate = new Date(weekRange.start);
-    const endDate = new Date(weekRange.end);
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-    let html = '<h4 style="font-size: 14px; color: var(--text-gray); margin-bottom: 12px;">Daily Details</h4>';
-
-    const currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
-        const dateStr = currentDate.toISOString().split('T')[0];
-        const dayIncomes = getIncomeByDate(dateStr);
-        const dayExpenses = getExpenseByDate(dateStr);
-        const daySummary = calculateSummary(dayIncomes, dayExpenses);
-
-        const dayName = days[currentDate.getDay()];
-        const hasData = dayIncomes.length > 0 || dayExpenses.length > 0;
-
-        if (hasData || currentDashboardView === 'weekly') {
-            html += `
-                <div class="breakdown-item">
-                    <div>
-                        <span class="breakdown-item-date">${formatDateShort(dateStr)}</span>
-                        <span class="breakdown-item-day">${dayName}</span>
-                    </div>
-                    <div class="breakdown-item-amount">
-                        <span class="breakdown-item-total ${daySummary.netIncome >= 0 ? 'positive' : 'negative'}">${formatRupiah(daySummary.netIncome)}</span>
-                        <span class="breakdown-item-detail">${daySummary.totalOrders} order • ${formatRupiah(daySummary.totalExpense)} out</span>
-                    </div>
-                </div>
-            `;
-        }
-
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    container.innerHTML = html;
-}
-
-// Update monthly section with data
-function updateMonthlySection() {
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    document.getElementById('monthLabel').textContent = `${monthNames[selectedMonth - 1]} ${selectedYear}`;
-
-    const monthRange = getMonthRange(selectedYear, selectedMonth);
-    const monthIncomes = getIncomeByDateRange(monthRange.start, monthRange.end);
-    const monthExpenses = getExpenseByDateRange(monthRange.start, monthRange.end);
-    const monthSummary = calculateSummary(monthIncomes, monthExpenses);
-
-    // Main stats
-    document.getElementById('monthlyIncome').textContent = formatRupiah(monthSummary.totalIncome);
-    document.getElementById('monthlyOrders').textContent = monthSummary.totalOrders;
-    document.getElementById('monthlyExpense').textContent = formatRupiah(monthSummary.totalExpense);
-    document.getElementById('monthlyNet').textContent = formatRupiah(monthSummary.netIncome);
-
-    // Platform breakdown
-    document.getElementById('monthlyGojek').textContent = formatRupiah(monthSummary.gojek.total);
-    document.getElementById('monthlyGojekOrders').textContent = `${monthSummary.gojek.orders} order`;
-    document.getElementById('monthlyGrab').textContent = formatRupiah(monthSummary.grab.total);
-    document.getElementById('monthlyGrabOrders').textContent = `${monthSummary.grab.orders} order`;
-
-    // Weekly breakdown for the month
-    if (currentDashboardView === 'monthly') {
-        loadMonthlyWeeklyBreakdown(monthRange);
-    }
-}
-
-// Load weekly breakdown for monthly view
-function loadMonthlyWeeklyBreakdown(monthRange) {
-    const container = document.getElementById('monthlyWeeklyBreakdown');
-    const startDate = new Date(monthRange.start);
-    const endDate = new Date(monthRange.end);
-
-    let html = '<h4 style="font-size: 14px; color: var(--text-gray); margin-bottom: 12px;">Weekly Details</h4>';
-
-    let weekNum = 1;
-    let currentWeekStart = new Date(startDate);
-    // Adjust to Sunday
-    currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
-
-    while (currentWeekStart <= endDate) {
-        const weekEnd = new Date(currentWeekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-
-        // Clamp to month range
-        const effectiveStart = new Date(Math.max(currentWeekStart.getTime(), startDate.getTime()));
-        const effectiveEnd = new Date(Math.min(weekEnd.getTime(), endDate.getTime()));
-
-        const weekStartStr = effectiveStart.toISOString().split('T')[0];
-        const weekEndStr = effectiveEnd.toISOString().split('T')[0];
-
-        const weekIncomes = getIncomeByDateRange(weekStartStr, weekEndStr);
-        const weekExpenses = getExpenseByDateRange(weekStartStr, weekEndStr);
-        const weekSummary = calculateSummary(weekIncomes, weekExpenses);
-
-        html += `
-            <div class="breakdown-item">
-                <div>
-                    <span class="breakdown-item-date">Week ${weekNum}</span>
-                    <span class="breakdown-item-day">${formatDateShort(weekStartStr)} - ${formatDateShort(weekEndStr)}</span>
-                </div>
-                <div class="breakdown-item-amount">
-                    <span class="breakdown-item-total ${weekSummary.netIncome >= 0 ? 'positive' : 'negative'}">${formatRupiah(weekSummary.netIncome)}</span>
-                    <span class="breakdown-item-detail">${weekSummary.totalOrders} order • ${formatRupiah(weekSummary.totalExpense)} out</span>
-                </div>
-            </div>
-        `;
-
-        currentWeekStart.setDate(currentWeekStart.getDate() + 7);
-        weekNum++;
-    }
-
-    container.innerHTML = html;
-}
-
-// Get week range from any date
 function getWeekRangeFromDate(dateStr) {
     const date = new Date(dateStr);
     const dayOfWeek = date.getDay();
@@ -772,99 +714,22 @@ function getWeekRangeFromDate(dateStr) {
     };
 }
 
-// Navigate to previous/next date
 function navigateDate(offset) {
     const date = new Date(selectedDate);
-    // For weekly view, navigate by 7 days
     const days = currentDashboardView === 'weekly' ? offset * 7 : offset;
     date.setDate(date.getDate() + days);
     selectedDate = date.toISOString().split('T')[0];
     updateDashboard();
 }
 
-// Load dashboard by selected date from date picker
 function loadDashboardByDate() {
     selectedDate = document.getElementById('dashboardDate').value;
     updateDashboard();
 }
 
-// Go to today
 function goToToday() {
     selectedDate = getToday();
     updateDashboard();
-}
-
-function loadRecentActivity() {
-    const incomes = getIncomeByDate(selectedDate);
-    const expenses = getExpenseByDate(selectedDate);
-
-    // Update activity header
-    const isToday = selectedDate === getToday();
-    const headerText = isToday ? 'Today Activity' : `Activity ${formatDateShort(selectedDate)}`;
-    document.getElementById('activityHeader').textContent = headerText;
-
-    const activities = [
-        ...incomes.map(i => ({ ...i, type: 'income' })),
-        ...expenses.map(e => ({ ...e, type: 'expense' }))
-    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    const container = document.getElementById('recentList');
-
-    if (activities.length === 0) {
-        const emptyText = isToday ? 'No data today' : `No data on ${formatDateShort(selectedDate)}`;
-        container.innerHTML = `
-            <div class="empty-state">
-                <span class="empty-icon">📝</span>
-                <p>${emptyText}</p>
-                <button class="btn btn-primary" onclick="switchPage('pendapatan')">Add Income</button>
-            </div>
-        `;
-        return;
-    }
-
-    const logoUrls = {
-        gojek: 'gojek-logo.png',
-        grab: 'grab-logo.png'
-    };
-
-    container.innerHTML = activities.slice(0, 5).map(item => {
-        if (item.type === 'income') {
-            return `
-                <div class="recent-item">
-                    <div class="recent-item-left">
-                        <div class="recent-platform ${item.platform}">
-                            <img src="${logoUrls[item.platform]}" alt="${item.platform}" class="recent-logo-img">
-                        </div>
-                        <div class="recent-info">
-                            <h4>${item.platform === 'gojek' ? 'Gojek' : 'Grab'}</h4>
-                            <p>${item.note || `${item.orders} order`}</p>
-                        </div>
-                    </div>
-                    <div class="recent-item-right">
-                        <span class="recent-amount income">+${formatRupiah(item.amount + (item.bonus || 0))}</span>
-                        <span class="recent-orders">${item.orders} order</span>
-                    </div>
-                </div>
-            `;
-        } else {
-            const icons = { bensin: '⛽', pulsa: '📱', makan: '🍜', ngopi: '☕', service: '🔧', parkir: '🅿️', lainnya: '📦' };
-            const labels = { bensin: 'Fuel', pulsa: 'Data/Phone', makan: 'Food', ngopi: 'Coffee', service: 'Service', parkir: 'Parking', lainnya: 'Others' };
-            return `
-                <div class="recent-item">
-                    <div class="recent-item-left">
-                        <div class="recent-platform expense">${icons[item.category]}</div>
-                        <div class="recent-info">
-                            <h4>${labels[item.category]}</h4>
-                            <p>${item.note || 'Expense'}</p>
-                        </div>
-                    </div>
-                    <div class="recent-item-right">
-                        <span class="recent-amount expense">-${formatRupiah(item.amount)}</span>
-                    </div>
-                </div>
-            `;
-        }
-    }).join('');
 }
 
 // ==================== INCOME PAGE ====================
@@ -918,7 +783,7 @@ function loadIncomeList() {
                 </div>
                 <div class="data-actions">
                     <button class="btn-edit" onclick="editIncome(${item.id})">Edit</button>
-                    <button class="btn-delete" onclick="confirmDeleteIncome(${item.id})">Hapus</button>
+                    <button class="btn-delete" onclick="confirmDeleteIncome(${item.id})">Delete</button>
                 </div>
             </div>
         </div>
@@ -967,9 +832,9 @@ function editIncome(id) {
     document.getElementById('editModal').classList.add('show');
 }
 
-function confirmDeleteIncome(id) {
+async function confirmDeleteIncome(id) {
     if (confirm('Are you sure you want to delete this data?')) {
-        deleteIncome(id);
+        await deleteIncome(id);
         loadIncomeList();
         updateDashboard();
         showToast('Data deleted successfully');
@@ -1023,7 +888,7 @@ function loadExpenseList() {
                 </div>
                 <div class="data-actions">
                     <button class="btn-edit" onclick="editExpense(${item.id})">Edit</button>
-                    <button class="btn-delete" onclick="confirmDeleteExpense(${item.id})">Hapus</button>
+                    <button class="btn-delete" onclick="confirmDeleteExpense(${item.id})">Delete</button>
                 </div>
             </div>
         </div>
@@ -1066,9 +931,9 @@ function editExpense(id) {
     document.getElementById('editModal').classList.add('show');
 }
 
-function confirmDeleteExpense(id) {
+async function confirmDeleteExpense(id) {
     if (confirm('Are you sure you want to delete this data?')) {
-        deleteExpense(id);
+        await deleteExpense(id);
         loadExpenseList();
         updateDashboard();
         showToast('Data deleted successfully');
@@ -1083,7 +948,6 @@ function loadTargetPage() {
     document.getElementById('targetWeekly').value = target.weekly;
     document.getElementById('targetMonthly').value = target.monthly;
 
-    // Update target progress cards
     const today = getToday();
     const todayIncomes = getIncomeByDate(today);
     const todayExpenses = getExpenseByDate(today);
@@ -1100,7 +964,6 @@ function loadTargetPage() {
     const monthExpenses = getExpenseByDateRange(monthRange.start, monthRange.end);
     const monthSummary = calculateSummary(monthIncomes, monthExpenses);
 
-    // Daily (based on weekday/weekend)
     const dailyTarget = getDailyTarget(today);
     const dailyPercent = dailyTarget > 0 ? Math.min(100, (todaySummary.netIncome / dailyTarget) * 100) : 0;
     document.getElementById('dailyPercent').textContent = `${Math.round(dailyPercent)}%`;
@@ -1108,13 +971,11 @@ function loadTargetPage() {
     document.getElementById('dailyGoal').textContent = formatRupiah(dailyTarget);
     document.getElementById('dailyRing').style.background = `conic-gradient(var(--primary) ${dailyPercent}%, var(--border) ${dailyPercent}%)`;
 
-    // Show weekday/weekend label
     const dayLabel = isWeekend(today) ? 'Today (Weekend)' : 'Today (Weekday)';
     const targetTodayLabel = document.querySelector('.target-card:first-child .target-label');
     if (targetTodayLabel) targetTodayLabel.textContent = dayLabel;
     document.getElementById('targetTodayDate').textContent = formatDateShort(today);
 
-    // Weekly
     const weeklyPercent = target.weekly > 0 ? Math.min(100, (weekSummary.netIncome / target.weekly) * 100) : 0;
     document.getElementById('weeklyPercent').textContent = `${Math.round(weeklyPercent)}%`;
     document.getElementById('weeklyCurrent').textContent = formatRupiah(weekSummary.netIncome);
@@ -1122,7 +983,6 @@ function loadTargetPage() {
     document.getElementById('weeklyRing').style.background = `conic-gradient(var(--primary) ${weeklyPercent}%, var(--border) ${weeklyPercent}%)`;
     document.getElementById('targetWeekDate').textContent = `${formatDateShort(weekRange.start)} - ${formatDateShort(weekRange.end)}`;
 
-    // Monthly
     const monthlyPercent = target.monthly > 0 ? Math.min(100, (monthSummary.netIncome / target.monthly) * 100) : 0;
     document.getElementById('monthlyPercent').textContent = `${Math.round(monthlyPercent)}%`;
     document.getElementById('monthlyCurrent').textContent = formatRupiah(monthSummary.netIncome);
@@ -1138,13 +998,15 @@ function closeEditModal() {
     document.getElementById('editModal').classList.remove('show');
 }
 
-function saveEdit(e) {
+async function saveEdit(e) {
     e.preventDefault();
     const id = parseInt(document.getElementById('editId').value);
     const type = document.getElementById('editType').value;
 
+    showLoading('Saving...');
+
     if (type === 'income') {
-        updateIncome(id, {
+        await updateIncome(id, {
             platform: document.getElementById('editPlatform').value,
             date: document.getElementById('editDate').value,
             amount: parseInt(document.getElementById('editAmount').value) || 0,
@@ -1154,7 +1016,7 @@ function saveEdit(e) {
         });
         loadIncomeList();
     } else {
-        updateExpense(id, {
+        await updateExpense(id, {
             category: document.getElementById('editCategory').value,
             date: document.getElementById('editDate').value,
             amount: parseInt(document.getElementById('editAmount').value) || 0,
@@ -1163,6 +1025,7 @@ function saveEdit(e) {
         loadExpenseList();
     }
 
+    hideLoading();
     closeEditModal();
     updateDashboard();
     showToast('Data updated successfully');
@@ -1192,7 +1055,6 @@ function initFilters() {
     const now = new Date();
     const months = [];
 
-    // Generate last 12 months
     for (let i = 0; i < 12; i++) {
         const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -1225,11 +1087,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Login form handler
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
 
-    // Initialize only if logged in
-    const isLoggedIn = sessionStorage.getItem(AUTH.SESSION_KEY) === 'true';
-    if (isLoggedIn) {
-        initFilters();
-        updateDashboard();
+    // Register form handler
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleRegister);
     }
 
     // Set default dates
@@ -1244,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Income form
-    document.getElementById('incomeForm').addEventListener('submit', function(e) {
+    document.getElementById('incomeForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         try {
             const platform = document.querySelector('input[name="platform"]:checked').value;
@@ -1266,18 +1127,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 note: document.getElementById('incomeNote').value
             };
 
-            addIncome(income);
-            this.reset();
-            document.getElementById('incomeDate').value = getToday();
-            document.querySelector('input[name="platform"][value="gojek"]').checked = true;
+            const result = await addIncome(income);
+            if (result) {
+                this.reset();
+                document.getElementById('incomeDate').value = getToday();
+                document.querySelector('input[name="platform"][value="gojek"]').checked = true;
 
-            // Reset filter to show current month
-            const currentMonth = getToday().substring(0, 7);
-            document.getElementById('incomeFilterMonth').value = currentMonth;
+                const currentMonth = getToday().substring(0, 7);
+                document.getElementById('incomeFilterMonth').value = currentMonth;
 
-            loadIncomeList();
-            updateDashboard();
-            showToast('Income added successfully');
+                loadIncomeList();
+                updateDashboard();
+                showToast('Income added successfully');
+            }
         } catch (err) {
             console.error('Error adding income:', err);
             showToast('Failed to save: ' + err.message, 'error');
@@ -1285,7 +1147,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Expense form
-    document.getElementById('expenseForm').addEventListener('submit', function(e) {
+    document.getElementById('expenseForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const expense = {
             category: document.getElementById('expenseCategory').value,
@@ -1293,16 +1155,19 @@ document.addEventListener('DOMContentLoaded', function() {
             amount: parseInt(document.getElementById('expenseAmount').value) || 0,
             note: document.getElementById('expenseNote').value
         };
-        addExpense(expense);
-        this.reset();
-        document.getElementById('expenseDate').value = getToday();
-        loadExpenseList();
-        updateDashboard();
-        showToast('Expense added successfully');
+
+        const result = await addExpense(expense);
+        if (result) {
+            this.reset();
+            document.getElementById('expenseDate').value = getToday();
+            loadExpenseList();
+            updateDashboard();
+            showToast('Expense added successfully');
+        }
     });
 
     // Target form
-    document.getElementById('targetForm').addEventListener('submit', function(e) {
+    document.getElementById('targetForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const weekday = parseInt(document.getElementById('targetWeekday').value) || 0;
         const weekend = parseInt(document.getElementById('targetWeekend').value) || 0;
@@ -1313,13 +1178,16 @@ document.addEventListener('DOMContentLoaded', function() {
             weekly: parseInt(document.getElementById('targetWeekly').value) || (weekday * 5 + weekend * 2),
             monthly: parseInt(document.getElementById('targetMonthly').value) || (weekday * 5 + weekend * 2) * 4
         };
-        saveTarget(target);
-        loadTargetPage();
-        updateDashboard();
-        showToast('Target saved successfully');
+
+        const success = await saveTarget(target);
+        if (success) {
+            loadTargetPage();
+            updateDashboard();
+            showToast('Target saved successfully');
+        }
     });
 
-    // Auto-calculate weekly target when weekday/weekend changes
+    // Auto-calculate targets
     document.getElementById('targetWeekday').addEventListener('input', autoCalculateTargets);
     document.getElementById('targetWeekend').addEventListener('input', autoCalculateTargets);
 
