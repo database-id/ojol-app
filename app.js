@@ -382,35 +382,70 @@ function updateDashboard() {
     document.getElementById('tableSubtitle').textContent = tableSubtitle;
 }
 
-// Update visual income chart
+// Update mini chart and quick stats
 function updateIncomeChart(summary, target) {
     const gojekIncome = summary.gojek.total;
     const grabIncome = summary.grab.total;
     const totalIncome = summary.totalIncome;
 
-    // Calculate max value for scaling (either target or highest income)
-    const maxValue = Math.max(target, totalIncome, gojekIncome, grabIncome, 1);
-    const chartHeight = 150; // Max height in pixels
+    // Calculate percentages for horizontal bars (based on target)
+    const maxValue = Math.max(target, totalIncome, 1);
+    const gojekPct = (gojekIncome / maxValue) * 100;
+    const grabPct = (grabIncome / maxValue) * 100;
+    const totalPct = (totalIncome / maxValue) * 100;
 
-    // Calculate bar heights
-    const gojekHeight = Math.max(4, (gojekIncome / maxValue) * chartHeight);
-    const grabHeight = Math.max(4, (grabIncome / maxValue) * chartHeight);
-    const totalHeight = Math.max(4, (totalIncome / maxValue) * chartHeight);
-
-    // Update bar heights
-    document.getElementById('chartBarGojek').style.height = `${gojekHeight}px`;
-    document.getElementById('chartBarGrab').style.height = `${grabHeight}px`;
-    document.getElementById('chartBarTotal').style.height = `${totalHeight}px`;
+    // Update bar widths
+    document.getElementById('chartBarGojek').style.width = `${Math.min(100, gojekPct)}%`;
+    document.getElementById('chartBarGrab').style.width = `${Math.min(100, grabPct)}%`;
+    document.getElementById('chartBarTotal').style.width = `${Math.min(100, totalPct)}%`;
 
     // Update bar values
     document.getElementById('chartGojekValue').textContent = formatRupiahShort(gojekIncome);
     document.getElementById('chartGrabValue').textContent = formatRupiahShort(grabIncome);
     document.getElementById('chartTotalValue').textContent = formatRupiahShort(totalIncome);
 
-    // Update target line position
-    const targetLinePosition = 30 + (target / maxValue) * chartHeight;
-    document.getElementById('chartTargetLine').style.bottom = `${targetLinePosition}px`;
-    document.getElementById('chartTargetValue').textContent = formatRupiahShort(target);
+    // Update quick stats
+    updateQuickStats(summary);
+}
+
+// Update quick stats panel
+function updateQuickStats(summary) {
+    const gojekIncome = summary.gojek.total;
+    const grabIncome = summary.grab.total;
+    const totalIncome = summary.totalIncome;
+    const gojekOrders = summary.gojek.orders;
+    const grabOrders = summary.grab.orders;
+
+    // Calculate percentages
+    const gojekPct = totalIncome > 0 ? Math.round((gojekIncome / totalIncome) * 100) : 0;
+    const grabPct = totalIncome > 0 ? Math.round((grabIncome / totalIncome) * 100) : 0;
+
+    // Determine top platform
+    let topPlatform = '-';
+    if (gojekOrders > 0 || grabOrders > 0) {
+        if (gojekOrders > grabOrders) {
+            topPlatform = `Gojek (${gojekOrders})`;
+        } else if (grabOrders > gojekOrders) {
+            topPlatform = `Grab (${grabOrders})`;
+        } else {
+            topPlatform = `Sama (${gojekOrders})`;
+        }
+    }
+
+    // Calculate average (for weekly/monthly)
+    let avgDaily = summary.netIncome;
+    if (currentDashboardView === 'weekly') {
+        avgDaily = Math.round(summary.netIncome / 7);
+    } else if (currentDashboardView === 'monthly') {
+        const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+        avgDaily = Math.round(summary.netIncome / daysInMonth);
+    }
+
+    // Update DOM
+    document.getElementById('statAvgDaily').textContent = formatRupiah(avgDaily);
+    document.getElementById('statTopPlatform').textContent = topPlatform;
+    document.getElementById('statGojekPct').textContent = `${gojekPct}%`;
+    document.getElementById('statGrabPct').textContent = `${grabPct}%`;
 }
 
 // Format rupiah in short form (K for thousands)
