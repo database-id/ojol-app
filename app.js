@@ -582,63 +582,11 @@ function calculateSummary(incomes, expenses) {
 function toggleMobileMenu() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('mobileOverlay');
-    const menuBtn = document.getElementById('mobileMenuBtn');
 
     if (sidebar && overlay) {
-        const isOpening = !sidebar.classList.contains('show');
         sidebar.classList.toggle('show');
         overlay.classList.toggle('show');
-
-        // Hide button when sidebar opens
-        if (isOpening && menuBtn) {
-            menuBtn.classList.add('hide');
-        } else if (menuBtn) {
-            menuBtn.classList.remove('hide');
-        }
     }
-}
-
-// Auto-hide mobile menu button on scroll
-let lastScrollTop = 0;
-let scrollTimeout;
-
-function handleMobileMenuScroll() {
-    const menuBtn = document.getElementById('mobileMenuBtn');
-    const sidebar = document.getElementById('sidebar');
-
-    if (!menuBtn || window.innerWidth > 768) return;
-
-    // Always hide if sidebar is open
-    if (sidebar && sidebar.classList.contains('show')) {
-        menuBtn.classList.add('hide');
-        return;
-    }
-
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-    clearTimeout(scrollTimeout);
-
-    if (scrollTop > lastScrollTop && scrollTop > 15) {
-        // Scrolling down & past 15px - hide button
-        menuBtn.classList.add('hide');
-    } else {
-        // Scrolling up - show button
-        menuBtn.classList.remove('hide');
-    }
-
-    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-
-    // Show button again after 2 seconds of no scrolling
-    scrollTimeout = setTimeout(() => {
-        if (!sidebar || !sidebar.classList.contains('show')) {
-            menuBtn.classList.remove('hide');
-        }
-    }, 2000);
-}
-
-// Add scroll listener for mobile menu
-if (typeof window !== 'undefined') {
-    window.addEventListener('scroll', handleMobileMenuScroll);
 }
 
 // ==================== UI NAVIGATION ====================
@@ -657,13 +605,11 @@ function switchPage(pageName) {
     });
 
     // Close mobile menu after navigation
-    if (window.innerWidth <= 768) {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('mobileOverlay');
-        if (sidebar && overlay && sidebar.classList.contains('show')) {
-            sidebar.classList.remove('show');
-            overlay.classList.remove('show');
-        }
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('mobileOverlay');
+    if (sidebar && overlay && sidebar.classList.contains('show')) {
+        sidebar.classList.remove('show');
+        overlay.classList.remove('show');
     }
 
     if (pageName === 'dashboard') updateDashboard();
