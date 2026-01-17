@@ -312,18 +312,38 @@ function getWeekRange() {
     startOfWeek.setDate(today.getDate() - dayOfWeek);
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+    // Format dates safely without timezone issues
+    const startYear = startOfWeek.getFullYear();
+    const startMonth = String(startOfWeek.getMonth() + 1).padStart(2, '0');
+    const startDay = String(startOfWeek.getDate()).padStart(2, '0');
+
+    const endYear = endOfWeek.getFullYear();
+    const endMonth = String(endOfWeek.getMonth() + 1).padStart(2, '0');
+    const endDay = String(endOfWeek.getDate()).padStart(2, '0');
+
     return {
-        start: startOfWeek.toISOString().split('T')[0],
-        end: endOfWeek.toISOString().split('T')[0]
+        start: `${startYear}-${startMonth}-${startDay}`,
+        end: `${endYear}-${endMonth}-${endDay}`
     };
 }
 
 function getMonthRange(year, month) {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
+
+    // Format dates safely without timezone issues
+    const startYear = startDate.getFullYear();
+    const startMonth = String(startDate.getMonth() + 1).padStart(2, '0');
+    const startDay = String(startDate.getDate()).padStart(2, '0');
+
+    const endYear = endDate.getFullYear();
+    const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
+    const endDay = String(endDate.getDate()).padStart(2, '0');
+
     return {
-        start: startDate.toISOString().split('T')[0],
-        end: endDate.toISOString().split('T')[0]
+        start: `${startYear}-${startMonth}-${startDay}`,
+        end: `${endYear}-${endMonth}-${endDay}`
     };
 }
 
@@ -794,16 +814,15 @@ function formatRupiahShort(num) {
 
 function getWeekRangeFromDate(dateStr) {
     if (!dateStr || typeof dateStr !== 'string') {
-        const today = new Date();
-        dateStr = today.toISOString().split('T')[0];
+        dateStr = getToday();
     }
 
     const parts = dateStr.split('-');
     if (parts.length !== 3) {
-        const today = new Date();
+        const todayStr = getToday();
         return {
-            start: today.toISOString().split('T')[0],
-            end: today.toISOString().split('T')[0]
+            start: todayStr,
+            end: todayStr
         };
     }
 
@@ -812,10 +831,10 @@ function getWeekRangeFromDate(dateStr) {
     const day = parseInt(parts[2]);
 
     if (isNaN(year) || isNaN(month) || isNaN(day)) {
-        const today = new Date();
+        const todayStr = getToday();
         return {
-            start: today.toISOString().split('T')[0],
-            end: today.toISOString().split('T')[0]
+            start: todayStr,
+            end: todayStr
         };
     }
 
@@ -825,9 +844,19 @@ function getWeekRangeFromDate(dateStr) {
     startOfWeek.setDate(day - dayOfWeek);
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+    // Format dates safely without timezone issues
+    const startYear = startOfWeek.getFullYear();
+    const startMonth = String(startOfWeek.getMonth() + 1).padStart(2, '0');
+    const startDay = String(startOfWeek.getDate()).padStart(2, '0');
+
+    const endYear = endOfWeek.getFullYear();
+    const endMonth = String(endOfWeek.getMonth() + 1).padStart(2, '0');
+    const endDay = String(endOfWeek.getDate()).padStart(2, '0');
+
     return {
-        start: startOfWeek.toISOString().split('T')[0],
-        end: endOfWeek.toISOString().split('T')[0]
+        start: `${startYear}-${startMonth}-${startDay}`,
+        end: `${endYear}-${endMonth}-${endDay}`
     };
 }
 
@@ -856,7 +885,13 @@ function navigateDate(offset) {
     const date = new Date(year, month - 1, day);
     const days = currentDashboardView === 'weekly' ? offset * 7 : offset;
     date.setDate(date.getDate() + days);
-    selectedDate = date.toISOString().split('T')[0];
+
+    // Format date safely without timezone issues
+    const newYear = date.getFullYear();
+    const newMonth = String(date.getMonth() + 1).padStart(2, '0');
+    const newDay = String(date.getDate()).padStart(2, '0');
+    selectedDate = `${newYear}-${newMonth}-${newDay}`;
+
     updateDashboard();
 }
 
