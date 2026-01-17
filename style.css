@@ -138,9 +138,22 @@ body {
     flex: 1;
     margin-left: 0;
     padding: 32px;
-    padding-top: 64px;
-    padding-left: 64px;
     max-width: 1200px;
+}
+
+/* Page Title Row with Menu Button */
+.page-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.page-title-row h2 {
+    margin: 0;
+}
+
+.page-title-row .page-subtitle {
+    margin: 4px 0 0 0;
 }
 
 .content-section {
@@ -1950,34 +1963,28 @@ body {
 
 /* Hamburger Menu Button */
 .mobile-menu-btn {
-    display: block;
-    position: fixed;
-    top: 12px;
-    left: 12px;
-    z-index: 1001;
-    background: rgba(37, 99, 235, 0.9);
-    color: white;
+    background: transparent;
+    color: var(--text-dark);
     border: none;
-    border-radius: 50%;
+    border-radius: 8px;
     width: 40px;
     height: 40px;
     font-size: 20px;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 12px;
 }
 
 .mobile-menu-btn:hover {
-    background: var(--primary);
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    background: var(--bg);
 }
 
 .mobile-menu-btn:active {
     transform: scale(0.95);
+    background: var(--border);
 }
 
 .mobile-overlay {
@@ -2051,17 +2058,14 @@ body {
 
     .main-content {
         padding: 16px;
-        padding-top: 64px;
-        padding-left: 16px;
         padding-bottom: 80px;
     }
 
     .mobile-menu-btn {
-        top: 10px;
-        left: 10px;
         width: 36px;
         height: 36px;
         font-size: 18px;
+        margin-right: 8px;
     }
 }
 

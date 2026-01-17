@@ -65,9 +65,6 @@
     </div>
 
     <div class="app-container" id="appContainer" style="display: none;">
-        <!-- MOBILE MENU BUTTON -->
-        <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">☰</button>
-
         <!-- MOBILE OVERLAY -->
         <div class="mobile-overlay" id="mobileOverlay" onclick="toggleMobileMenu()"></div>
 
@@ -105,7 +102,10 @@
             <section id="dashboardSection" class="content-section">
                 <!-- Header -->
                 <div class="dashboard-header">
-                    <h2>Dashboard</h2>
+                    <div class="page-title-row">
+                        <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMobileMenu()">☰</button>
+                        <h2>Dashboard</h2>
+                    </div>
                     <div class="period-tabs">
                         <button class="period-tab active" data-view="daily" onclick="switchDashboardView('daily')">Daily</button>
                         <button class="period-tab" data-view="weekly" onclick="switchDashboardView('weekly')">Weekly</button>
@@ -187,8 +187,13 @@
             <!-- INCOME -->
             <section id="pendapatanSection" class="content-section" style="display:none;">
                 <div class="page-header">
-                    <h2>Add Income</h2>
-                    <p class="page-subtitle">Record daily income from Gojek & Grab</p>
+                    <div class="page-title-row">
+                        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+                        <div>
+                            <h2>Add Income</h2>
+                            <p class="page-subtitle">Record daily income from Gojek & Grab</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Quick Add -->
@@ -268,8 +273,13 @@
             <!-- EXPENSE -->
             <section id="pengeluaranSection" class="content-section" style="display:none;">
                 <div class="page-header">
-                    <h2>Add Expense</h2>
-                    <p class="page-subtitle">Record daily operational expenses</p>
+                    <div class="page-title-row">
+                        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+                        <div>
+                            <h2>Add Expense</h2>
+                            <p class="page-subtitle">Record daily operational expenses</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Quick Add -->
@@ -337,8 +347,13 @@
             <!-- TARGET -->
             <section id="targetSection" class="content-section" style="display:none;">
                 <div class="page-header">
-                    <h2>Income Target</h2>
-                    <p class="page-subtitle">Set daily, weekly, and monthly targets</p>
+                    <div class="page-title-row">
+                        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">☰</button>
+                        <div>
+                            <h2>Income Target</h2>
+                            <p class="page-subtitle">Set daily, weekly, and monthly targets</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="target-settings">
