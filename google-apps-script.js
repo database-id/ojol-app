@@ -126,6 +126,24 @@ function loginUser(username, password) {
   return { success: false, error: 'Username not found!' };
 }
 
+// Helper function to format date to YYYY-MM-DD
+function formatDateToString(date) {
+  if (!date) return '';
+
+  // If already a string, return as is
+  if (typeof date === 'string') return date;
+
+  // If it's a Date object, convert to YYYY-MM-DD
+  if (date instanceof Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  return String(date);
+}
+
 // ==================== INCOME FUNCTIONS ====================
 function getIncome(username) {
   const sheet = getSheet('Income');
@@ -137,7 +155,7 @@ function getIncome(username) {
       income.push({
         id: data[i][1],
         platform: data[i][2],
-        date: data[i][3],
+        date: formatDateToString(data[i][3]),
         amount: data[i][4],
         orders: data[i][5],
         bonus: data[i][6],
@@ -207,7 +225,7 @@ function getExpense(username) {
       expense.push({
         id: data[i][1],
         category: data[i][2],
-        date: data[i][3],
+        date: formatDateToString(data[i][3]),
         amount: data[i][4],
         note: data[i][5],
         createdAt: data[i][6]

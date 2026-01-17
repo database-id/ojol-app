@@ -270,8 +270,18 @@ function getToday() {
 }
 
 function formatDate(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return '';
+
     // Parse date string safely without timezone issues
-    const [year, month, day] = dateStr.split('-').map(Number);
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr; // Return original if format is wrong
+
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]);
+    const day = parseInt(parts[2]);
+
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return dateStr;
+
     const date = new Date(year, month - 1, day);
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -279,8 +289,18 @@ function formatDate(dateStr) {
 }
 
 function formatDateShort(dateStr) {
+    if (!dateStr || typeof dateStr !== 'string') return '';
+
     // Parse date string safely without timezone issues
-    const [year, month, day] = dateStr.split('-').map(Number);
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]);
+    const day = parseInt(parts[2]);
+
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return dateStr;
+
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${day} ${months[month - 1]}`;
 }
@@ -520,7 +540,17 @@ async function saveTarget(target) {
 // Get daily target based on day of week
 function getDailyTarget(dateStr) {
     const target = getTarget();
-    const [year, month, day] = dateStr.split('-').map(Number);
+    if (!dateStr || typeof dateStr !== 'string') return target.weekday;
+
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return target.weekday;
+
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]);
+    const day = parseInt(parts[2]);
+
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return target.weekday;
+
     const date = new Date(year, month - 1, day);
     const dayOfWeek = date.getDay();
 
@@ -532,7 +562,17 @@ function getDailyTarget(dateStr) {
 
 // Check if date is weekend
 function isWeekend(dateStr) {
-    const [year, month, day] = dateStr.split('-').map(Number);
+    if (!dateStr || typeof dateStr !== 'string') return false;
+
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return false;
+
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]);
+    const day = parseInt(parts[2]);
+
+    if (isNaN(year) || isNaN(month) || isNaN(day)) return false;
+
     const date = new Date(year, month - 1, day);
     const dayOfWeek = date.getDay();
     return dayOfWeek === 0 || dayOfWeek === 6;
@@ -753,7 +793,32 @@ function formatRupiahShort(num) {
 }
 
 function getWeekRangeFromDate(dateStr) {
-    const [year, month, day] = dateStr.split('-').map(Number);
+    if (!dateStr || typeof dateStr !== 'string') {
+        const today = new Date();
+        dateStr = today.toISOString().split('T')[0];
+    }
+
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) {
+        const today = new Date();
+        return {
+            start: today.toISOString().split('T')[0],
+            end: today.toISOString().split('T')[0]
+        };
+    }
+
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]);
+    const day = parseInt(parts[2]);
+
+    if (isNaN(year) || isNaN(month) || isNaN(day)) {
+        const today = new Date();
+        return {
+            start: today.toISOString().split('T')[0],
+            end: today.toISOString().split('T')[0]
+        };
+    }
+
     const date = new Date(year, month - 1, day);
     const dayOfWeek = date.getDay();
     const startOfWeek = new Date(year, month - 1, day);
@@ -767,7 +832,27 @@ function getWeekRangeFromDate(dateStr) {
 }
 
 function navigateDate(offset) {
-    const [year, month, day] = selectedDate.split('-').map(Number);
+    if (!selectedDate || typeof selectedDate !== 'string') {
+        selectedDate = getToday();
+    }
+
+    const parts = selectedDate.split('-');
+    if (parts.length !== 3) {
+        selectedDate = getToday();
+        updateDashboard();
+        return;
+    }
+
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]);
+    const day = parseInt(parts[2]);
+
+    if (isNaN(year) || isNaN(month) || isNaN(day)) {
+        selectedDate = getToday();
+        updateDashboard();
+        return;
+    }
+
     const date = new Date(year, month - 1, day);
     const days = currentDashboardView === 'weekly' ? offset * 7 : offset;
     date.setDate(date.getDate() + days);
