@@ -144,16 +144,24 @@ body {
 /* Page Title Row with Menu Button */
 .page-title-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 0;
 }
 
 .page-title-row h2 {
     margin: 0;
+    line-height: 40px;
 }
 
 .page-title-row .page-subtitle {
-    margin: 4px 0 0 0;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.page-title-row > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .content-section {
@@ -1969,13 +1977,15 @@ body {
     border-radius: 8px;
     width: 40px;
     height: 40px;
+    min-width: 40px;
     font-size: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 12px;
+    margin-right: 8px;
+    flex-shrink: 0;
 }
 
 .mobile-menu-btn:hover {
