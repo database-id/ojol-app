@@ -270,16 +270,19 @@ function getToday() {
 }
 
 function formatDate(dateStr) {
-    const date = new Date(dateStr);
+    // Parse date string safely without timezone issues
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${days[date.getDay()]}, ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    return `${days[date.getDay()]}, ${day} ${months[month - 1]} ${year}`;
 }
 
 function formatDateShort(dateStr) {
-    const date = new Date(dateStr);
+    // Parse date string safely without timezone issues
+    const [year, month, day] = dateStr.split('-').map(Number);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${date.getDate()} ${months[date.getMonth()]}`;
+    return `${day} ${months[month - 1]}`;
 }
 
 function getWeekRange() {
@@ -517,7 +520,8 @@ async function saveTarget(target) {
 // Get daily target based on day of week
 function getDailyTarget(dateStr) {
     const target = getTarget();
-    const date = new Date(dateStr);
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     const dayOfWeek = date.getDay();
 
     if (dayOfWeek === 0 || dayOfWeek === 6) {
@@ -528,7 +532,8 @@ function getDailyTarget(dateStr) {
 
 // Check if date is weekend
 function isWeekend(dateStr) {
-    const date = new Date(dateStr);
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     const dayOfWeek = date.getDay();
     return dayOfWeek === 0 || dayOfWeek === 6;
 }
@@ -802,10 +807,11 @@ function formatRupiahShort(num) {
 }
 
 function getWeekRangeFromDate(dateStr) {
-    const date = new Date(dateStr);
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     const dayOfWeek = date.getDay();
-    const startOfWeek = new Date(date);
-    startOfWeek.setDate(date.getDate() - dayOfWeek);
+    const startOfWeek = new Date(year, month - 1, day);
+    startOfWeek.setDate(day - dayOfWeek);
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
     return {
@@ -815,7 +821,8 @@ function getWeekRangeFromDate(dateStr) {
 }
 
 function navigateDate(offset) {
-    const date = new Date(selectedDate);
+    const [year, month, day] = selectedDate.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
     const days = currentDashboardView === 'weekly' ? offset * 7 : offset;
     date.setDate(date.getDate() + days);
     selectedDate = date.toISOString().split('T')[0];
